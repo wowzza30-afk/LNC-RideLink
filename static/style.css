@@ -1,0 +1,252 @@
+/* ==========================================================================
+   1. GLOBAL VARIABLES & THEME OVERRIDES
+   ========================================================================== */
+:root {
+    --bg-main: #0f111a;
+    --bg-card: #161925;
+    --bg-dark-subtle: #12141f;
+    --border-color: #23283e;
+    --text-muted-color: #6c7a9c;
+    --accent-blue: #0d6efd;
+    --accent-green: #198754;
+    --accent-cyan: #0dcaf0;
+    --accent-warning: #ffc107;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Typography Weight Upgrade */
+.fw-black {
+    font-weight: 900;
+}
+
+/* Custom Micro-font utility for metadata subtext */
+.fs-7 {
+    font-size: 0.75rem !important;
+}
+
+/* ==========================================================================
+   2. NAVBAR & NAVIGATION (MAIN & SUB-NAV)
+   ========================================================================== */
+.navbar {
+    background-color: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color);
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.navbar-brand {
+    letter-spacing: -0.5px;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: var(--text-muted-color) !important;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #ffffff !important;
+}
+
+/* Sub-navigation UI Enhancements */
+.bg-dark-subtle {
+    background-color: var(--bg-dark-subtle) !important;
+}
+
+.tracking-wider {
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+}
+
+.nav-pills .nav-link {
+    color: #a0aec0 !important;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.nav-pills .nav-link:hover {
+    color: #ffffff !important;
+    background-color: #1f2334;
+}
+
+.nav-pills .nav-link.active {
+    color: #000000 !important;
+    background-color: var(--accent-cyan) !important;
+    font-weight: 600;
+}
+
+/* Status Indicator Pulse Style */
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
+.blinking-dot {
+    animation: pulse 2s infinite;
+    font-size: 0.6rem;
+    vertical-align: middle;
+}
+
+/* ==========================================================================
+   3. DASHBOARD WIDGETS, PANELS & CARDS
+   ========================================================================== */
+/* Statistical Banner Cards */
+.card-stat {
+    background: linear-gradient(145deg, var(--bg-card), #1b1f2e);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-stat:hover {
+    transform: translateY(-3px);
+    border-color: #2f3654;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Primary Section Panels (Forms & Tables) */
+.form-container,
+.table-container {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Role Icons */
+.badge-driver {
+    background-color: var(--accent-blue);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.badge-passenger {
+    background-color: var(--accent-green);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Status Pill Formatting */
+.status-pill {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    letter-spacing: 0.3px;
+}
+
+/* ==========================================================================
+   4. HOMEPAGE SPECIFIC STYLES & MICRO-INTERACTIONS
+   ========================================================================== */
+/* Micro Interaction Effects */
+.transform-hover {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+.transform-hover:hover {
+    transform: scale(1.02) translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+    border-color: var(--accent-cyan) !important;
+}
+
+/* Dashboard Page Card Hover states */
+.transition-card {
+    transition: transform 0.2s ease;
+}
+.transition-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-warning) !important;
+}
+
+/* Standard Animation Timers */
+.animate-fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   5. FORMS, TABLES & SCROLLBAR
+   ========================================================================== */
+.form-control,
+.form-select {
+    background-color: #1f2334;
+    border: 1px solid var(--border-color);
+    color: #ffffff;
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: #1f2334;
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+    box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
+}
+
+.form-control::placeholder {
+    color: #4b5571;
+}
+
+/* Radio button toggles for Role Profiling */
+.btn-check:checked + .btn-outline-primary {
+    background-color: rgba(13, 110, 253, 0.15);
+    border-color: var(--accent-blue);
+    color: #599cff;
+}
+
+.btn-check:checked + .btn-outline-success {
+    background-color: rgba(25, 135, 84, 0.15);
+    border-color: var(--accent-green);
+    color: #5dd893;
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom-width: 1px !important;
+}
+
+.table td {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.btn {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Custom platform scrollbars for dark interfaces */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+    background: #23273a;
+    border-radius: 5px;
+    border: 2px solid var(--bg-main);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #313752;
+}

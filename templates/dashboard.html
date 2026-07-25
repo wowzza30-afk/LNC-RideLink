@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>RideLink - Dashboard</title>
+
+    <!-- Bootstrap -->
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <!-- Custom CSS -->
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <!-- ================= NAVBAR ================= -->
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand fw-bold text-white" href="/">
+          <i class="bi bi-car-front-fill text-info me-2"></i>
+
+          RideLink
+        </a>
+
+        <button
+          class="navbar-toggler"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarContent"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/"> Home </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="/find-group"> Find Groups </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" href="/dashboard"> Dashboard </a>
+            </li>
+          </ul>
+
+          <div>
+            <span class="text-info me-3"> {{ session["user_name"] }} </span>
+
+            <a href="/logout" class="btn btn-outline-danger btn-sm"> Logout </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ================= MAIN ================= -->
+
+    <main class="container my-5 animate-fade-in">
+      <div class="mb-5">
+        <h1 class="text-white fw-black">
+          <i class="bi bi-speedometer2 text-info me-2"></i>
+
+          Dashboard
+        </h1>
+
+        <p class="text-secondary">
+          Manage your rides and track your community impact.
+        </p>
+      </div>
+
+      <!-- ================= METRICS ================= -->
+
+      <div class="row g-4 mb-5">
+        <div class="col-md-4 col-lg-2">
+          <div class="card-stat p-4 text-center h-100">
+            <i class="bi bi-car-front-fill text-info display-6"></i>
+
+            <h3 class="text-white mt-3">{{ metrics.active_pools }}</h3>
+
+            <p class="text-secondary small">Active Pools</p>
+          </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+          <div class="card-stat p-4 text-center h-100">
+            <i class="bi bi-people-fill text-success display-6"></i>
+
+            <h3 class="text-white mt-3">{{ metrics.total_riders }}</h3>
+
+            <p class="text-secondary small">Total Riders</p>
+          </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+          <div class="card-stat p-4 text-center h-100">
+            <i class="bi bi-person-workspace text-warning display-6"></i>
+
+            <h3 class="text-white mt-3">{{ metrics.available_seats }}</h3>
+
+            <p class="text-secondary small">Available Seats</p>
+          </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+          <div class="card-stat p-4 text-center h-100">
+            <i class="bi bi-tree text-success display-6"></i>
+
+            <h3 class="text-white mt-3">{{ metrics.co2_saved }}</h3>
+
+            <p class="text-secondary small">CO₂ Saved</p>
+          </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+          <div class="card-stat p-4 text-center h-100">
+            <i class="bi bi-cash-stack text-info display-6"></i>
+
+            <h3 class="text-white mt-3">${{ metrics.gas_saved }}</h3>
+
+            <p class="text-secondary small">Gas Saved</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CREATE ROUTE ================= -->
+
+      <div class="form-container p-4 mb-5">
+        <h3 class="text-white fw-bold mb-4">
+          <i class="bi bi-plus-circle text-info me-2"></i>
+
+          Create Carpool Route
+        </h3>
+
+        <form action="/publish" method="POST">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="text-secondary"> Starting Point </label>
+
+              <input
+                class="form-control"
+                name="start_point"
+                placeholder="Charlotte, NC"
+                required
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="text-secondary"> Destination </label>
+
+              <input
+                class="form-control"
+                name="end_point"
+                placeholder="Office / School"
+                required
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="text-secondary"> Vehicle </label>
+
+              <input
+                class="form-control"
+                name="vehicle"
+                placeholder="Toyota Camry"
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="text-secondary"> Date </label>
+
+              <input
+                type="date"
+                class="form-control"
+                name="ride_date"
+                required
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="text-secondary"> Departure Time </label>
+
+              <input
+                type="time"
+                class="form-control"
+                name="ride_time"
+                required
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="text-secondary"> Seats Available </label>
+
+              <input
+                type="number"
+                class="form-control"
+                name="seats"
+                min="1"
+                max="8"
+                required
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label class="text-secondary"> Role </label>
+
+              <select class="form-select" name="role">
+                <option value="driver">Driver</option>
+
+                <option value="passenger">Passenger</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-end">
+              <button class="btn btn-info text-dark fw-bold w-100">
+                <i class="bi bi-upload me-2"></i>
+
+                Publish Ride
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- ================= ACTIVE RIDES ================= -->
+
+      <h3 class="text-white fw-bold mb-4">
+        <i class="bi bi-list-check text-info me-2"></i>
+
+        Your Active Rides
+      </h3>
+
+      <div class="row g-4">
+        {% for pool in pools %}
+
+        <div class="col-md-6 col-lg-4">
+          <div class="card bg-dark border-secondary p-4 h-100">
+            <div class="d-flex justify-content-between">
+              <h5 class="text-white">{{ pool.organizer }}</h5>
+
+              <span class="badge bg-success"> {{ pool.status }} </span>
+            </div>
+
+            <hr class="border-secondary" />
+
+            <p class="text-secondary">
+              <i class="bi bi-geo-alt me-2"></i>
+
+              {{ pool.start_point }} → {{ pool.end_point }}
+            </p>
+
+            <p class="text-secondary">
+              <i class="bi bi-calendar me-2"></i>
+
+              {{ pool.ride_date }}
+            </p>
+
+            <p class="text-secondary">
+              <i class="bi bi-clock me-2"></i>
+
+              {{ pool.ride_time }}
+            </p>
+
+            <p class="text-secondary">
+              Seats:
+
+              <strong class="text-white">
+                {{ pool.seats_filled }}/{{ pool.seats_total }}
+              </strong>
+            </p>
+
+            {% if pool.organizer == session["user_name"] %}
+
+            <form action="/cancel-pool/{{ pool.id }}" method="POST">
+              <button class="btn btn-outline-danger w-100">
+                <i class="bi bi-trash me-2"></i>
+
+                Cancel Ride
+              </button>
+            </form>
+
+            {% endif %}
+          </div>
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-5">
+          <i class="bi bi-car-front text-secondary display-3"></i>
+
+          <h4 class="text-white mt-3">No Active Rides</h4>
+
+          <p class="text-secondary">
+            Create a ride or join a group to get started.
+          </p>
+        </div>
+
+        {% endfor %}
+      </div>
+    </main>
+
+    <footer class="container mt-5 py-4 border-top border-secondary-subtle">
+      <p class="text-center text-secondary small">© 2026 RideLink</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

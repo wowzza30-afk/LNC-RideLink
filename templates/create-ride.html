@@ -1,0 +1,131 @@
+{% extends "base.html" %} {% block title %} RideLink - Create Ride {% endblock
+%} {% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card bg-dark border-secondary p-4">
+      <h2 class="text-white mb-4">
+        <i class="bi bi-car-front text-info me-2"></i>
+
+        Create Ride
+      </h2>
+
+      <form action="/create-ride" method="POST">
+        <div class="mb-3">
+          <label class="text-secondary"> Child </label>
+
+          <select class="form-select" name="child_id" required>
+            {% for child in children %}
+
+            <option value="{{ child.id }}">{{ child.name }}</option>
+
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="text-secondary"> Campus </label>
+
+          <select class="form-select" name="campus">
+            <option>Elementary</option>
+            <option>Middle School</option>
+            <option>High School</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="text-secondary"> Ride Type </label>
+
+          <select class="form-select" name="ride_type">
+            <option>Morning Arrival</option>
+            <option>Afternoon Pickup</option>
+            <option>Sports</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="text-secondary"> Neighborhood Location</label>
+          <select class="form-select" name="neighborhood">
+            <option>Harrisburg</option>
+
+            <option>Huntersville</option>
+
+            <option>Cornelius</option>
+
+            <option>Davidson</option>
+
+            <option>Concord</option>
+
+            <option>Charlotte</option>
+
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="text-secondary"> Starting Point </label>
+
+          <input
+            class="form-control"
+            name="start_point"
+            placeholder="Home address or area"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="text-secondary"> Destination </label>
+
+          <input
+            class="form-control"
+            name="destination"
+            placeholder="School / Activity"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="text-secondary"> Weekday </label>
+
+          <select class="form-select" name="weekday">
+            <option>Monday</option>
+            <option>Tuesday</option>
+            <option>Wednesday</option>
+            <option>Thursday</option>
+            <option>Friday</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="text-secondary"> Departure Time </label>
+
+          <input
+            type="time"
+            class="form-control"
+            name="departure_time"
+            required
+          />
+        </div>
+
+        <div class="mb-4">
+          <label class="text-secondary"> Available Seats </label>
+
+          <input
+            type="number"
+            class="form-control"
+            name="seats"
+            value="4"
+            min="1"
+            max="10"
+          />
+        </div>
+
+        <button class="btn btn-info text-dark fw-bold w-100">
+          Publish Ride
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

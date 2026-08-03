@@ -1,0 +1,157 @@
+{% extends "base.html" %} {% block title %} RideLink - Find Rides {% endblock %}
+{% block content %}
+
+<div class="text-center mb-5">
+  <h1 class="text-white fw-bold">
+    <i class="bi bi-search text-info me-2"></i>
+
+    Find Available Carpools
+  </h1>
+
+  <p class="text-secondary">
+    Find safe transportation options for your children.
+  </p>
+</div>
+
+<!-- =========================
+FILTERS
+========================= -->
+
+<form
+  action="/find-rides"
+  method="GET"
+  class="card bg-dark border-secondary p-4 mb-5"
+>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="text-secondary"> Campus </label>
+
+      <select class="form-select" name="campus">
+        <option value="">Any Campus</option>
+
+        <option>Elementary</option>
+
+        <option>Middle School</option>
+
+        <option>High School</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="text-secondary"> Neighborhood Location</label>
+      <select class="form-select" name="neighborhood">
+        <option>Harrisburg</option>
+
+        <option>Huntersville</option>
+
+        <option>Cornelius</option>
+
+        <option>Davidson</option>
+
+        <option>Concord</option>
+
+        <option>Charlotte</option>
+
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="text-secondary"> Ride Type </label>
+
+      <select class="form-select" name="ride_type">
+        <option value="">Any Ride</option>
+
+        <option>Morning Arrival</option>
+
+        <option>Afternoon Pickup</option>
+
+        <option>Clubs/Extracurriculars</option>
+      </select>
+    </div>
+
+    <div class="col-md-1 d-flex align-items-end">
+      <button class="btn btn-info text-dark fw-bold w-100">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </div>
+</form>
+
+<!-- =========================
+RIDES
+========================= -->
+
+<div class="row g-4">
+  {% for ride in rides %}
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary p-4 h-100">
+      <h4 class="text-white fw-bold">{{ ride.driver_name }}</h4>
+
+      <p class="text-secondary">
+        Driving for:
+
+        <strong class="text-white"> {{ ride.child_name }} </strong>
+      </p>
+
+      <span class="badge bg-success mb-3"> {{ ride.status }} </span>
+
+      <div class="mb-3">
+        <p class="text-secondary mb-2">
+          <i class="bi bi-building me-2"></i>
+
+          {{ ride.campus }}
+        </p>
+
+        <p class="text-secondary mb-2">
+          <i class="bi bi-geo-alt me-2"></i>
+
+          {{ ride.start_point }} → {{ ride.destination }}
+        </p>
+
+        <p class="text-secondary">
+          <i class="bi bi-clock me-2"></i>
+
+          {{ ride.departure_time }}
+        </p>
+      </div>
+
+      <div class="border-top border-secondary pt-3">
+        <form action="/request-ride/{{ ride.id }}" method="POST">
+          <label class="text-secondary small"> Select Child </label>
+
+          <select class="form-select mb-3" name="child_id" required>
+            <option value="">Choose child</option>
+
+            {% for child in children %}
+
+            <option value="{{ child.id }}">{{ child.name }}</option>
+
+            {% endfor %}
+          </select>
+
+          <button class="btn btn-info text-dark fw-bold w-100">
+            <i class="bi bi-send me-2"></i>
+
+            Request Ride
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+
+  <div class="text-center py-5">
+    <i class="bi bi-car-front display-3 text-secondary"></i>
+
+    <h4 class="text-white mt-3">No Available Carpools</h4>
+
+    <p class="text-secondary">Try changing your filters.</p>
+  </div>
+
+  {% endfor %}
+</div>
+
+{% endblock %}

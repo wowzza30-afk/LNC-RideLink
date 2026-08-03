@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% block title %} RideLink - Parent Profile {%
+endblock %} {% block content %}
+
+<!-- =========================
+PROFILE
+========================= -->
+
+<div class="card bg-dark border-secondary p-4 mb-5">
+  <h4 class="text-white">
+    <i class="bi bi-person-circle text-info me-2"></i>
+
+    {{ user.name }}
+  </h4>
+
+  <hr class="border-secondary" />
+
+  <div class="row">
+    <div class="col-md-4">
+      <p class="text-secondary mb-1">Email</p>
+
+      <p class="text-white">{{ user.email }}</p>
+    </div>
+
+    <div class="col-md-4">
+      <p class="text-secondary mb-1">Phone</p>
+
+      <p class="text-white">{{ user.phone or "Not Added" }}</p>
+    </div>
+
+    <div class="col-md-4">
+      <p class="text-secondary mb-1">Neighborhood</p>
+
+      <p class="text-white">{{ user.neighborhood }}</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,21 +1,33 @@
 import sqlite3
 
-
 DATABASE = "ridelink.db"
+
+
+def get_db():
+
+    conn = sqlite3.connect(DATABASE)
+
+    conn.row_factory = sqlite3.Row
+
+    conn.execute("""
+        PRAGMA foreign_keys = ON
+    """)
+
+    return conn
 
 
 def init_database():
 
-    connection = sqlite3.connect(DATABASE)
+    conn = get_db()
 
-    cursor = connection.cursor()
+    cursor = conn.cursor()
 
     # =========================
-    # USERS
+    # USERS (PARENTS)
     # =========================
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE IF NOT EXISTS users(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -25,114 +37,290 @@ def init_database():
 
         password TEXT NOT NULL,
 
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        phone TEXT,
 
-    );
-    """)
-
-    # =========================
-    # ACTIVE RIDES
-    # =========================
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS active_pools (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        organizer TEXT NOT NULL,
-
-        vehicle TEXT,
-
-        role TEXT NOT NULL,
-
-        start_point TEXT NOT NULL,
-
-        end_point TEXT NOT NULL,
-
-        ride_date TEXT,
-
-        ride_time TEXT,
-
-        seats_filled INTEGER DEFAULT 0,
-
-        seats_total INTEGER DEFAULT 4,
-
-        status TEXT DEFAULT 'Open',
+        neighborhood TEXT,
 
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
-    );
+    )
     """)
 
     # =========================
-    # AVAILABLE GROUPS
+    # CHILDREN
     # =========================
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS carpool_groups (
+    CREATE TABLE IF NOT EXISTS children(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        parent_id INTEGER NOT NULL,
 
         name TEXT NOT NULL,
 
-        organization TEXT,
+        grade_level TEXT,
 
-        destination TEXT,
+        campus TEXT,
 
-        departure_time TEXT,
+        activities TEXT,
 
-        schedule TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-        origin TEXT,
 
-        match_percentage INTEGER DEFAULT 0,
+        FOREIGN KEY(parent_id)
 
-        status TEXT DEFAULT 'Open',
+        REFERENCES users(id)
 
-        seats_filled INTEGER DEFAULT 0,
+        ON DELETE CASCADE
 
-        seats_total INTEGER DEFAULT 4,
-
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-
-    );
+    )
     """)
 
     # =========================
-    # GROUP MEMBERS
+    # CARPOOLS
     # =========================
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS group_members (
+    CREATE TABLE IF NOT EXISTS active_pools(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
+
+        driver_id INTEGER NOT NULL,
+
+
+        child_id INTEGER NOT NULL,
+
+
+        campus TEXT NOT NULL,
+
+
+        ride_type TEXT NOT NULL,
+
+
+        neighborhood TEXT,
+
+
+        weekday TEXT,
+
+
+        start_point TEXT NOT NULL,
+
+
+        destination TEXT NOT NULL,
+
+
+        departure_time TEXT NOT NULL,
+
+
+        seats_total INTEGER DEFAULT 4,
+
+
+        seats_filled INTEGER DEFAULT 1,
+
+
+        status TEXT DEFAULT 'Open',
+
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+
+
+        FOREIGN KEY(driver_id)
+
+        REFERENCES users(id)
+
+        ON DELETE CASCADE,
+
+
+
+        FOREIGN KEY(child_id)
+
+        REFERENCES children(id)
+
+        ON DELETE CASCADE
+
+    )
+    """)
+
+    # =========================
+    # RIDE REQUESTS
+    # =========================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS ride_requests(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+
+        pool_id INTEGER NOT NULL,
+
+
+        child_id INTEGER NOT NULL,
+
+
+        parent_id INTEGER NOT NULL,
+
+
+        status TEXT DEFAULT 'Pending',
+
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+
+
+        FOREIGN KEY(pool_id)
+
+        REFERENCES active_pools(id)
+
+        ON DELETE CASCADE,
+
+
+
+        FOREIGN KEY(child_id)
+
+        REFERENCES children(id)
+
+        ON DELETE CASCADE,
+
+
+
+        FOREIGN KEY(parent_id)
+
+        REFERENCES users(id)
+
+        ON DELETE CASCADE
+
+    )
+    """)
+
+    # =========================
+    # APPROVED MEMBERS
+    # =========================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS ride_members(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+
+        pool_id INTEGER NOT NULL,
+
+
+        child_id INTEGER NOT NULL,
+
+
+        parent_id INTEGER NOT NULL,
+
+
+        status TEXT DEFAULT 'Approved',
+
+
+
+        FOREIGN KEY(pool_id)
+
+        REFERENCES active_pools(id)
+
+        ON DELETE CASCADE,
+
+
+
+        FOREIGN KEY(child_id)
+
+        REFERENCES children(id)
+
+        ON DELETE CASCADE,
+
+
+
+        FOREIGN KEY(parent_id)
+
+        REFERENCES users(id)
+
+        ON DELETE CASCADE
+
+    )
+    """)
+
+    # =========================
+    # NOTIFICATIONS
+    # =========================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS notifications(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+
         user_id INTEGER NOT NULL,
 
-        group_id INTEGER NOT NULL,
 
-        joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        message TEXT NOT NULL,
+
+
+        seen INTEGER DEFAULT 0,
+
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
 
 
         FOREIGN KEY(user_id)
-        REFERENCES users(id),
 
+        REFERENCES users(id)
 
-        FOREIGN KEY(group_id)
-        REFERENCES carpool_groups(id)
+        ON DELETE CASCADE
 
-    );
+    )
     """)
 
-    connection.commit()
+    # =========================
+    # RIDE CHAT
+    # =========================
 
-    connection.close()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS ride_messages(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
 
 
-    print(
-        "RideLink database initialized successfully!"
+        pool_id INTEGER NOT NULL,
+
+
+        user_id INTEGER NOT NULL,
+
+
+        message TEXT NOT NULL,
+
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+
+
+        FOREIGN KEY(pool_id)
+
+        REFERENCES active_pools(id)
+
+        ON DELETE CASCADE,
+
+
+
+        FOREIGN KEY(user_id)
+
+        REFERENCES users(id)
+
+        ON DELETE CASCADE
+
     )
+    """)
+
+    conn.commit()
+
+    conn.close()
+
+    print("RideLink database initialized!")
+
 
 if __name__ == "__main__":
-
     init_database()

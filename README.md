@@ -1,6 +1,6 @@
 # RideLink
 
-RideLink is a Flask-based carpool management platform that helps commuters find and join shared rides.
+LNC RideLink is a Flask-based carpool management platform that helps commuters find and join shared rides.
 
 ## Features
 
@@ -9,6 +9,7 @@ RideLink is a Flask-based carpool management platform that helps commuters find 
 - Find nearby groups
 - Join ride pools
 - Dashboard analytics
+- Private group chat
 
 ## Technologies
 

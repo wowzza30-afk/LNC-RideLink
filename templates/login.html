@@ -1,188 +1,156 @@
-<!doctype html>
-<html lang="en" data-bs-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "base.html" %} {% block title %} LNC RideLink - Parent Login {% endblock
+%} {% block navbar %} {% endblock %} {% block content %}
 
-    <title>RideLink - Login</title>
-
-    <!-- Bootstrap -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Bootstrap Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-
-    <!-- Custom CSS -->
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
-
-  <body
-    class="d-flex align-items-center justify-content-center"
-    style="min-height: 100vh"
+<div
+  class="d-flex justify-content-center align-items-center"
+  style="min-height: 80vh"
+>
+  <div
+    class="card bg-dark border-secondary p-4"
+    style="max-width: 450px; width: 100%"
   >
-    <div class="container" style="max-width: 450px">
-      <!-- ================= BRAND ================= -->
+    <div class="text-center mb-4">
+      <i class="bi bi-car-front-fill text-info display-3"></i>
 
-      <div class="text-center mb-4">
-        <i class="bi bi-car-front-fill text-info display-3"></i>
+      <h1 class="text-white fw-bold mt-3">LNC RideLink</h1>
 
-        <h1 class="text-white fw-black mt-2">RideLink</h1>
-
-        <p class="text-secondary">Smart Group Carpool Authentication</p>
-      </div>
-
-      <!-- ================= FLASH MESSAGES ================= -->
-
-      {% with messages = get_flashed_messages() %} {% if messages %} {% for
-      message in messages %}
-
-      <div class="alert alert-info text-center">
-        <i class="bi bi-info-circle me-2"></i>
-
-        {{ message }}
-      </div>
-
-      {% endfor %} {% endif %} {% endwith %}
-
-      <!-- ================= AUTH CARD ================= -->
-
-      <div class="form-container p-4">
-        <!-- TABS -->
-
-        <ul class="nav nav-pills nav-fill mb-4" role="tablist">
-          <li class="nav-item">
-            <button
-              class="nav-link active"
-              data-bs-toggle="pill"
-              data-bs-target="#loginPanel"
-              type="button"
-            >
-              Login
-            </button>
-          </li>
-
-          <li class="nav-item">
-            <button
-              class="nav-link"
-              data-bs-toggle="pill"
-              data-bs-target="#registerPanel"
-              type="button"
-            >
-              Register
-            </button>
-          </li>
-        </ul>
-
-        <div class="tab-content">
-          <!-- ================= LOGIN ================= -->
-
-          <div class="tab-pane fade show active" id="loginPanel">
-            <form action="/login" method="POST">
-              <div class="mb-3">
-                <label class="form-label text-secondary"> Email </label>
-
-                <input
-                  type="email"
-                  class="form-control"
-                  name="email"
-                  placeholder="name@example.com"
-                  required
-                />
-              </div>
-
-              <div class="mb-4">
-                <label class="form-label text-secondary"> Password </label>
-
-                <input
-                  type="password"
-                  class="form-control"
-                  name="password"
-                  placeholder="Enter password"
-                  required
-                />
-              </div>
-
-              <button class="btn btn-info w-100 fw-bold text-dark">
-                <i class="bi bi-box-arrow-in-right me-2"></i>
-
-                Login
-              </button>
-            </form>
-          </div>
-
-          <!-- ================= REGISTER ================= -->
-
-          <div class="tab-pane fade" id="registerPanel">
-            <form action="/register" method="POST">
-              <div class="mb-3">
-                <label class="form-label text-secondary"> Full Name </label>
-
-                <input
-                  type="text"
-                  class="form-control"
-                  name="name"
-                  placeholder="John Smith"
-                  required
-                />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label text-secondary"> Email </label>
-
-                <input
-                  type="email"
-                  class="form-control"
-                  name="email"
-                  placeholder="name@example.com"
-                  required
-                />
-              </div>
-
-              <div class="mb-4">
-                <label class="form-label text-secondary"> Password </label>
-
-                <input
-                  type="password"
-                  class="form-control"
-                  name="password"
-                  placeholder="Create password"
-                  minlength="6"
-                  required
-                />
-              </div>
-
-              <button class="btn btn-success w-100 fw-bold">
-                <i class="bi bi-person-plus-fill me-2"></i>
-
-                Create Account
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <!-- RETURN HOME -->
-
-      <div class="text-center mt-4">
-        <a href="/" class="text-secondary text-decoration-none">
-          <i class="bi bi-arrow-left me-2"></i>
-
-          Return Home
-        </a>
-      </div>
+      <p class="text-secondary">Safe community transportation for Lake Norman Charter School.</p>
     </div>
 
-    <!-- Bootstrap JS -->
+    <ul class="nav nav-pills nav-fill mb-4">
+      <li class="nav-item">
+        <button
+          class="nav-link active"
+          data-bs-toggle="pill"
+          data-bs-target="#login"
+        >
+          Login
+        </button>
+      </li>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
-</html>
+      <li class="nav-item">
+        <button
+          class="nav-link"
+          data-bs-toggle="pill"
+          data-bs-target="#register"
+        >
+          Create Parent Account
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- =========================
+LOGIN
+========================= -->
+
+      <div class="tab-pane fade show active" id="login">
+        <form action="/login" method="POST">
+          <div class="mb-3">
+            <label class="text-secondary"> Email </label>
+
+            <input type="email" class="form-control" name="email" required />
+          </div>
+
+          <div class="mb-4">
+            <label class="text-secondary"> Password </label>
+
+            <input
+              type="password"
+              class="form-control"
+              name="password"
+              required
+            />
+          </div>
+
+          <button class="btn btn-info text-dark fw-bold w-100">
+            <i class="bi bi-box-arrow-in-right me-2"></i>
+
+            Login
+          </button>
+        </form>
+      </div>
+
+      <!-- =========================
+REGISTER
+========================= -->
+
+      <div class="tab-pane fade" id="register">
+        <form action="/register" method="POST">
+          <div class="mb-3">
+            <label class="text-secondary"> Parent / Guardian Name </label>
+
+            <input
+              class="form-control"
+              name="name"
+              placeholder="Jane Smith"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="text-secondary"> Email </label>
+
+            <input
+              type="email"
+              class="form-control"
+              name="email"
+              placeholder="parent@email.com"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="text-secondary"> Phone Number </label>
+
+            <input
+              class="form-control"
+              name="phone"
+              placeholder="(555) 555-5555"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="text-secondary"> Neighborhood </label>
+
+            <select class="form-select" name="neighborhood">
+              <option>Harrisburg</option>
+
+              <option>Huntersville</option>
+
+              <option>Cornelius</option>
+
+              <option>Davidson</option>
+
+              <option>Concord</option>
+
+              <option>Charlotte</option>
+
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="text-secondary"> Password </label>
+
+            <input
+              type="password"
+              class="form-control"
+              name="password"
+              minlength="6"
+              required
+            />
+          </div>
+
+          <button class="btn btn-success fw-bold w-100">
+            <i class="bi bi-person-plus-fill me-2"></i>
+
+            Create Parent Account
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block footer %} {% endblock %}

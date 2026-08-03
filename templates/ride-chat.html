@@ -1,0 +1,53 @@
+{% extends "base.html" %} {% block title %} LNC RideLink - Ride Chat {% endblock %}
+{% block content %}
+
+<div class="mb-5">
+  <h1 class="text-white fw-bold">
+    <i class="bi bi-people text-info me-2"></i>
+
+    {{ ride.driver_name }}'s Ride
+  </h1>
+
+  <p class="text-secondary">{{ ride.start_point }} → {{ ride.destination }}</p>
+</div>
+
+<div class="card bg-dark border-secondary p-4">
+  <div style="height: 400px; overflow-y: auto">
+    {% for message in messages %}
+
+    <div class="mb-3">
+      <strong class="text-success"> {{ message.name }} </strong>
+
+      <p class="text-white mb-0">{{ message.message }}</p>
+
+      <small class="text-secondary"> {{ message.created_at }} </small>
+    </div>
+
+    <hr class="border-secondary" />
+
+    {% else %}
+
+    <p class="text-secondary text-center">No messages yet.</p>
+
+    {% endfor %}
+  </div>
+
+  <form
+    action="{{ url_for('send_message', pool_id=pool_id) }}"
+    method="POST"
+    class="mt-4"
+  >
+    <div class="input-group">
+      <input
+        class="form-control"
+        name="message"
+        placeholder="Message your ride group..."
+        required
+      />
+
+      <button class="btn btn-info text-dark fw-bold">Send</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

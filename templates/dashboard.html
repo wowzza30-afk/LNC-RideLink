@@ -1,326 +1,228 @@
-<!doctype html>
-<html lang="en" data-bs-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
+{% extends "base.html" %} {% block title %} RideLink - Dashboard {% endblock %}
+{% block content %}
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<div class="mb-5">
+  <h1 class="text-white fw-bold">
+    <i class="bi bi-speedometer2 text-info me-2"></i>
 
-    <title>RideLink - Dashboard</title>
+    Dashboard
+  </h1>
 
-    <!-- Bootstrap -->
+  <p class="text-secondary">Manage your family transportation network.</p>
+</div>
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+<!-- =========================
+NOTIFICATIONS
+========================= -->
 
-    <!-- Bootstrap Icons -->
+<div class="card bg-dark border-secondary p-4 mb-5">
+  <h4 class="text-white">
+    <i class="bi bi-bell text-warning me-2"></i>
 
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
+    Notifications
+  </h4>
 
-    <!-- Custom CSS -->
+  <hr class="border-secondary" />
 
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
+  {% for note in notifications %}
 
-  <body>
-    <!-- ================= NAVBAR ================= -->
+  <div class="alert alert-info">{{ note.message }}</div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark">
-      <div class="container">
-        <a class="navbar-brand fw-bold text-white" href="/">
-          <i class="bi bi-car-front-fill text-info me-2"></i>
+  {% else %}
 
-          RideLink
-        </a>
+  <p class="text-secondary">No new notifications.</p>
 
-        <button
-          class="navbar-toggler"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarContent"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
+  {% endfor %}
+</div>
 
-        <div class="collapse navbar-collapse" id="navbarContent">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="/"> Home </a>
-            </li>
+<!-- =========================
+METRICS
+========================= -->
 
-            <li class="nav-item">
-              <a class="nav-link" href="/find-group"> Find Groups </a>
-            </li>
+<div class="card bg-dark border-secondary p-4 mb-5">
+  <h4 class="text-white">
+    <i class="bi bi-graph-up text-info me-2"></i>
 
-            <li class="nav-item">
-              <a class="nav-link active" href="/dashboard"> Dashboard </a>
-            </li>
-          </ul>
+    Metrics
+  </h4>
 
-          <div>
-            <span class="text-info me-3"> {{ session["user_name"] }} </span>
+  <div class="row g-4 mb-5">
+    <div class="col-md-3">
+      <div class="text-center p-3 h-100">
+        <i class="bi bi-car-front-fill text-info display-5 mb-3"></i>
 
-            <a href="/logout" class="btn btn-outline-danger btn-sm"> Logout </a>
-          </div>
-        </div>
+        <h2 class="text-white fw-bold">{{ total_rides }}</h2>
+
+        <p class="text-secondary mb-0">Carpools Created</p>
       </div>
-    </nav>
+    </div>
 
-    <!-- ================= MAIN ================= -->
+    <div class="col-md-3">
+      <div class="text-center p-3 h-100">
+        <i class="bi bi-people-fill text-success display-5 mb-3"></i>
 
-    <main class="container my-5 animate-fade-in">
-      <div class="mb-5">
-        <h1 class="text-white fw-black">
-          <i class="bi bi-speedometer2 text-info me-2"></i>
+        <h2 class="text-white fw-bold">{{ students }}</h2>
 
-          Dashboard
-        </h1>
-
-        <p class="text-secondary">
-          Manage your rides and track your community impact.
-        </p>
+        <p class="text-secondary mb-0">Students Connected</p>
       </div>
+    </div>
 
-      <!-- ================= METRICS ================= -->
+    <div class="col-md-3">
+      <div class="text-center p-3 h-100">
+        <i class="bi bi-tree-fill text-success display-5 mb-3"></i>
 
-      <div class="row g-4 mb-5">
-        <div class="col-md-4 col-lg-2">
-          <div class="card-stat p-4 text-center h-100">
-            <i class="bi bi-car-front-fill text-info display-6"></i>
+        <h2 class="text-white fw-bold">{{ co2_saved }}</h2>
 
-            <h3 class="text-white mt-3">{{ metrics.active_pools }}</h3>
-
-            <p class="text-secondary small">Active Pools</p>
-          </div>
-        </div>
-
-        <div class="col-md-4 col-lg-2">
-          <div class="card-stat p-4 text-center h-100">
-            <i class="bi bi-people-fill text-success display-6"></i>
-
-            <h3 class="text-white mt-3">{{ metrics.total_riders }}</h3>
-
-            <p class="text-secondary small">Total Riders</p>
-          </div>
-        </div>
-
-        <div class="col-md-4 col-lg-2">
-          <div class="card-stat p-4 text-center h-100">
-            <i class="bi bi-person-workspace text-warning display-6"></i>
-
-            <h3 class="text-white mt-3">{{ metrics.available_seats }}</h3>
-
-            <p class="text-secondary small">Available Seats</p>
-          </div>
-        </div>
-
-        <div class="col-md-4 col-lg-2">
-          <div class="card-stat p-4 text-center h-100">
-            <i class="bi bi-tree text-success display-6"></i>
-
-            <h3 class="text-white mt-3">{{ metrics.co2_saved }}</h3>
-
-            <p class="text-secondary small">CO₂ Saved</p>
-          </div>
-        </div>
-
-        <div class="col-md-4 col-lg-2">
-          <div class="card-stat p-4 text-center h-100">
-            <i class="bi bi-cash-stack text-info display-6"></i>
-
-            <h3 class="text-white mt-3">${{ metrics.gas_saved }}</h3>
-
-            <p class="text-secondary small">Gas Saved</p>
-          </div>
-        </div>
+        <p class="text-secondary mb-0">lbs CO₂ Saved</p>
       </div>
+    </div>
 
-      <!-- ================= CREATE ROUTE ================= -->
+    <div class="col-md-3">
+      <div class="text-center p-3 h-100">
+        <i class="bi bi-cash-stack text-warning display-5 mb-3"></i>
 
-      <div class="form-container p-4 mb-5">
-        <h3 class="text-white fw-bold mb-4">
-          <i class="bi bi-plus-circle text-info me-2"></i>
+        <h2 class="text-white fw-bold">${{ "%.2f"|format(money_saved) }}</h2>
 
-          Create Carpool Route
-        </h3>
-
-        <form action="/publish" method="POST">
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="text-secondary"> Starting Point </label>
-
-              <input
-                class="form-control"
-                name="start_point"
-                placeholder="Charlotte, NC"
-                required
-              />
-            </div>
-
-            <div class="col-md-4">
-              <label class="text-secondary"> Destination </label>
-
-              <input
-                class="form-control"
-                name="end_point"
-                placeholder="Office / School"
-                required
-              />
-            </div>
-
-            <div class="col-md-4">
-              <label class="text-secondary"> Vehicle </label>
-
-              <input
-                class="form-control"
-                name="vehicle"
-                placeholder="Toyota Camry"
-              />
-            </div>
-
-            <div class="col-md-4">
-              <label class="text-secondary"> Date </label>
-
-              <input
-                type="date"
-                class="form-control"
-                name="ride_date"
-                required
-              />
-            </div>
-
-            <div class="col-md-4">
-              <label class="text-secondary"> Departure Time </label>
-
-              <input
-                type="time"
-                class="form-control"
-                name="ride_time"
-                required
-              />
-            </div>
-
-            <div class="col-md-4">
-              <label class="text-secondary"> Seats Available </label>
-
-              <input
-                type="number"
-                class="form-control"
-                name="seats"
-                min="1"
-                max="8"
-                required
-              />
-            </div>
-
-            <div class="col-md-6">
-              <label class="text-secondary"> Role </label>
-
-              <select class="form-select" name="role">
-                <option value="driver">Driver</option>
-
-                <option value="passenger">Passenger</option>
-              </select>
-            </div>
-
-            <div class="col-md-6 d-flex align-items-end">
-              <button class="btn btn-info text-dark fw-bold w-100">
-                <i class="bi bi-upload me-2"></i>
-
-                Publish Ride
-              </button>
-            </div>
-          </div>
-        </form>
+        <p class="text-secondary mb-0">Estimated Savings</p>
       </div>
+    </div>
+  </div>
+</div>
 
-      <!-- ================= ACTIVE RIDES ================= -->
+<!-- =========================
+CHILDREN
+========================= -->
 
-      <h3 class="text-white fw-bold mb-4">
-        <i class="bi bi-list-check text-info me-2"></i>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="text-white">
+    <i class="bi bi-people text-info me-2"></i>
 
-        Your Active Rides
-      </h3>
+    My Children
+  </h3>
 
-      <div class="row g-4">
-        {% for pool in pools %}
+  <a href="/add-child" class="btn btn-info text-dark fw-bold">
+    <i class="bi bi-plus-circle me-2"></i>
 
-        <div class="col-md-6 col-lg-4">
-          <div class="card bg-dark border-secondary p-4 h-100">
-            <div class="d-flex justify-content-between">
-              <h5 class="text-white">{{ pool.organizer }}</h5>
+    Add Child
+  </a>
+</div>
 
-              <span class="badge bg-success"> {{ pool.status }} </span>
-            </div>
+<div class="row g-4 mb-5">
+  {% for child in children %}
 
-            <hr class="border-secondary" />
+  <div class="col-md-4">
+    <div class="card bg-dark border-secondary p-4">
+      <h5 class="text-white">{{ child.name }}</h5>
 
-            <p class="text-secondary">
-              <i class="bi bi-geo-alt me-2"></i>
+      <p class="text-secondary mb-1">Grade: {{ child.grade_level }}</p>
 
-              {{ pool.start_point }} → {{ pool.end_point }}
-            </p>
+      <p class="text-secondary mb-1">Campus: {{ child.campus }}</p>
 
-            <p class="text-secondary">
-              <i class="bi bi-calendar me-2"></i>
+      <p class="text-secondary">Activities: {{ child.activities or "None" }}</p>
+    </div>
+  </div>
 
-              {{ pool.ride_date }}
-            </p>
+  {% else %}
 
-            <p class="text-secondary">
-              <i class="bi bi-clock me-2"></i>
+  <div class="text-center py-4">
+    <p class="text-secondary">No children added yet.</p>
+  </div>
 
-              {{ pool.ride_time }}
-            </p>
+  {% endfor %}
+</div>
 
-            <p class="text-secondary">
-              Seats:
+<!-- =========================
+MY RIDES
+========================= -->
 
-              <strong class="text-white">
-                {{ pool.seats_filled }}/{{ pool.seats_total }}
-              </strong>
-            </p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="text-white">
+    <i class="bi bi-car-front text-info me-2"></i>
 
-            {% if pool.organizer == session["user_name"] %}
+    My Created Carpools
+  </h3>
 
-            <form action="/cancel-pool/{{ pool.id }}" method="POST">
-              <button class="btn btn-outline-danger w-100">
-                <i class="bi bi-trash me-2"></i>
+  <a href="/create-ride" class="btn btn-outline-info"> Create Ride </a>
+</div>
 
-                Cancel Ride
-              </button>
-            </form>
+<div class="row g-4 mb-5">
+  {% for ride in rides %}
 
-            {% endif %}
-          </div>
-        </div>
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary p-4 h-100">
+      <h5 class="text-white">{{ ride.child_name }}'s Ride</h5>
 
-        {% else %}
+      <span class="badge bg-success mb-3"> {{ ride.status }} </span>
 
-        <div class="text-center py-5">
-          <i class="bi bi-car-front text-secondary display-3"></i>
+      <p class="text-secondary">
+        <i class="bi bi-geo-alt me-2"></i>
 
-          <h4 class="text-white mt-3">No Active Rides</h4>
+        {{ ride.start_point }} → {{ ride.destination }}
+      </p>
 
-          <p class="text-secondary">
-            Create a ride or join a group to get started.
-          </p>
-        </div>
+      <p class="text-secondary">
+        <i class="bi bi-clock me-2"></i>
 
-        {% endfor %}
-      </div>
-    </main>
+        {{ ride.departure_time }}
+      </p>
 
-    <footer class="container mt-5 py-4 border-top border-secondary-subtle">
-      <p class="text-center text-secondary small">© 2026 RideLink</p>
-    </footer>
+      <p class="text-secondary">
+        Seats:
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
-</html>
+        <strong class="text-white">
+          {{ ride.seats_filled + 1 }}/{{ ride.seats_total }}
+        </strong>
+      </p>
+
+      <a href="/ride-chat/{{ ride.id }}" class="btn btn-outline-info">
+        <i class="bi bi-chat me-2"></i>
+
+        Ride Chat
+      </a>
+    </div>
+  </div>
+
+  {% else %}
+
+  <div class="text-center py-4">
+    <p class="text-secondary">You have not created any carpools.</p>
+  </div>
+
+  {% endfor %}
+</div>
+
+<!-- =========================
+REQUESTS
+========================= -->
+
+<h3 class="text-white mb-4">
+  <i class="bi bi-person-check text-success me-2"></i>
+
+  Pending Ride Requests
+</h3>
+
+{% for request in requests %}
+
+<div class="card bg-dark border-secondary p-3 mb-3">
+  <p class="text-white mb-2">
+    {{ request.child_name }} wants to join your ride.
+  </p>
+
+  <div class="d-flex gap-2">
+    <form action="/approve-request/{{ request.id }}" method="POST">
+      <button class="btn btn-success">Approve</button>
+    </form>
+
+    <form action="/reject-request/{{ request.id }}" method="POST">
+      <button class="btn btn-outline-danger">Reject</button>
+    </form>
+  </div>
+</div>
+
+{% else %}
+
+<div class="text-center py-4">
+  <p class="text-secondary">No pending carpool requests.</p>
+</div>
+
+{% endfor %} {% endblock %}

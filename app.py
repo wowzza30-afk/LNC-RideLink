@@ -1,1070 +1,1085 @@
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    session,
-    flash
-)
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 
-from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+
 import sqlite3
 import os
 
+app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# =====================================================
-# FLASK CONFIGURATION
-# =====================================================
-
-app = Flask(
-    __name__,
-    template_folder="templates",
-    static_folder="static"
-)
-
-# Use environment variable in production
-app.secret_key = os.environ.get(
-    "SECRET_KEY",
-    "development-secret-key-change-this"
-)
-
-
-# =====================================================
-# DATABASE CONNECTION
-# =====================================================
+app.secret_key = os.environ.get("SECRET_KEY", "development-secret-key")
 
 DATABASE = "ridelink.db"
 
+# =========================
+# DATABASE
+# =========================
 
-def get_db_connection():
-    """
-    Creates SQLite database connection.
-    Row factory allows accessing columns by name:
-    user["email"] instead of user[1]
-    """
+
+def get_db():
 
     conn = sqlite3.connect(DATABASE)
+
     conn.row_factory = sqlite3.Row
+
+    conn.execute("""
+        PRAGMA foreign_keys = ON
+    """)
 
     return conn
 
 
+def logged_in():
 
-# =====================================================
-# HOME PAGE
-# =====================================================
+    return "user_id" in session
+
+
+# =========================
+# HOME
+# =========================
+
 
 @app.route("/")
 def home():
+
+    if logged_in():
+        return redirect(url_for("dashboard"))
+
     return render_template("index.html")
 
 
+# =========================
+# LOGIN PAGE
+# =========================
 
-# =====================================================
-# AUTHENTICATION PAGE
-# =====================================================
 
 @app.route("/login")
 def login_page():
-    """
-    Displays login/register page.
-    """
 
     return render_template("login.html")
 
 
+# =========================
+# REGISTER PARENT
+# =========================
 
-# =====================================================
-# REGISTER USER
-# =====================================================
 
 @app.route("/register", methods=["POST"])
-def handle_register():
+def register():
 
     name = request.form.get("name", "").strip()
-    email = request.form.get("email", "").strip().lower()
+
+    email = request.form.get("email", "").lower().strip()
+
     password = request.form.get("password", "")
 
+    phone = request.form.get("phone", "")
+
+    neighborhood = request.form.get("neighborhood", "")
 
     if not name or not email or not password:
-        flash("Please fill out all registration fields.")
+        flash("Please complete all required fields.")
+
         return redirect(url_for("login_page"))
 
-
-
-    # Hash password before storing
-    hashed_password = generate_password_hash(password)
-
-
-
-    conn = get_db_connection()
-
+    conn = get_db()
 
     try:
-
         conn.execute(
             """
-            INSERT INTO users
-            (name, email, password)
-
-            VALUES (?, ?, ?)
-            """,
-
-            (
+            INSERT INTO users(
                 name,
                 email,
-                hashed_password
+                password,
+                phone,
+                neighborhood
             )
-        )
 
+            VALUES(?,?,?,?,?)
+
+        """,
+            (name, email, generate_password_hash(password), phone, neighborhood),
+        )
 
         conn.commit()
 
-
-
-        # Get newly created user
-
-        user = conn.execute(
-            """
-            SELECT *
-            FROM users
-            WHERE email = ?
-            """,
-
-            (email,)
-        ).fetchone()
-
-
-
-        session["user_id"] = user["id"]
-        session["user_name"] = user["name"]
-
-
-        flash("Account created successfully!")
-
-        return redirect(
-            url_for("dashboard")
-        )
-
-
-
     except sqlite3.IntegrityError:
-
-        flash(
-            "An account with this email already exists."
-        )
-
-        return redirect(
-            url_for("login_page")
-        )
-
-
-
-    finally:
-
         conn.close()
 
+        flash("Email already exists.")
 
-
-
-
-# =====================================================
-# LOGIN USER
-# =====================================================
-
-@app.route("/login", methods=["POST"])
-def handle_login():
-
-    email = request.form.get("email", "").strip().lower()
-    password = request.form.get("password", "")
-
-
-
-    conn = get_db_connection()
-
-
+        return redirect(url_for("login_page"))
 
     user = conn.execute(
         """
         SELECT *
         FROM users
-        WHERE email = ?
-        """,
+        WHERE email=?
 
-        (email,)
+    """,
+        (email,),
     ).fetchone()
-
-
 
     conn.close()
 
+    session["user_id"] = user["id"]
+
+    session["user_name"] = user["name"]
+
+    flash("Account created!")
+
+    return redirect(url_for("dashboard"))
 
 
-    if user and check_password_hash(
-        user["password"],
-        password
-    ):
+# =========================
+# LOGIN
+# =========================
 
 
+@app.route("/login", methods=["POST"])
+def login():
+
+    email = request.form.get("email", "").lower().strip()
+
+    password = request.form.get("password", "")
+
+    conn = get_db()
+
+    user = conn.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE email=?
+
+    """,
+        (email,),
+    ).fetchone()
+
+    conn.close()
+
+    if user and check_password_hash(user["password"], password):
         session["user_id"] = user["id"]
+
         session["user_name"] = user["name"]
 
+        return redirect(url_for("dashboard"))
 
-        flash(
-            "Welcome back!"
-        )
+    flash("Invalid login.")
 
-
-        return redirect(
-            url_for("dashboard")
-        )
+    return redirect(url_for("login_page"))
 
 
-
-    else:
-
-        flash(
-            "Invalid email or password."
-        )
-
-
-        return redirect(
-            url_for("login_page")
-        )
-
-
-
-
-# =====================================================
-# LOGOUT
-# =====================================================
-
-@app.route("/logout")
-def handle_logout():
-
-    session.clear()
-
-
-    flash(
-        "You have been logged out."
-    )
-
-
-    return redirect(
-        url_for("home")
-    )
-
-# =====================================================
+# =========================
 # DASHBOARD
-# =====================================================
+# =========================
+
 
 @app.route("/dashboard")
 def dashboard():
 
-    if "user_id" not in session:
-        flash(
-            "Please log in to access your dashboard."
-        )
-        return redirect(
-            url_for("login_page")
-        )
+    if not logged_in():
+        return redirect(url_for("login_page"))
 
+    conn = get_db()
 
-    conn = get_db_connection()
-
-
-    # Get active pools
-    pools = conn.execute(
+    user = conn.execute(
         """
         SELECT *
-        FROM active_pools
-        ORDER BY id DESC
+        FROM users
+        WHERE id=?
+
+    """,
+        (session["user_id"],),
+    ).fetchone()
+
+    children = conn.execute(
         """
+        SELECT *
+        FROM children
+
+        WHERE parent_id=?
+
+        ORDER BY id DESC
+
+    """,
+        (session["user_id"],),
     ).fetchall()
 
+    rides = conn.execute(
+        """
+        SELECT
+
+            active_pools.*,
+
+            children.name AS child_name
 
 
-    # Calculate real statistics
-
-    active_pool_count = len(pools)
+        FROM active_pools
 
 
-    total_seats = sum(
-        pool["seats_total"]
-        for pool in pools
-    )
+        JOIN children
+
+        ON active_pools.child_id = children.id
 
 
-    occupied_seats = sum(
-        pool["seats_filled"]
-        for pool in pools
-    )
+        WHERE active_pools.driver_id=?
 
 
-    available_seats = (
-        total_seats - occupied_seats
-    )
+        ORDER BY id DESC
 
 
+    """,
+        (session["user_id"],),
+    ).fetchall()
 
-    # Estimate environmental impact
-    # Each shared ride saves approximately fuel emissions
+    notifications = conn.execute(
+        """
+        SELECT *
 
-    co2_saved = occupied_seats * 12
+        FROM notifications
 
-    gas_saved = occupied_seats * 4.25
+        WHERE user_id=?
 
+        ORDER BY id DESC
 
-
-    metrics = {
-
-        "active_pools": active_pool_count,
-
-        "total_riders": occupied_seats,
-
-        "available_seats": available_seats,
-
-        "co2_saved": co2_saved,
-
-        "gas_saved": round(
-            gas_saved,
-            2
-        )
-    }
+        LIMIT 5
 
 
+    """,
+        (session["user_id"],),
+    ).fetchall()
+
+    requests = conn.execute(
+        """
+        SELECT
+
+            ride_requests.*,
+
+            children.name AS child_name
+
+
+        FROM ride_requests
+
+
+        JOIN children
+
+        ON ride_requests.child_id = children.id
+
+
+        JOIN active_pools
+
+        ON ride_requests.pool_id = active_pools.id
+
+
+        WHERE active_pools.driver_id=?
+
+        AND ride_requests.status='Pending'
+
+
+    """,
+        (session["user_id"],),
+    ).fetchall()
 
     conn.close()
 
+    # =========================
+    # IMPACT METRICS
+    # =========================
 
+    total_rides = len(rides)
+
+    students = 0
+
+    for ride in rides:
+        students += ride["seats_filled"]
+
+    co2_saved = total_rides * 12  # lbs of CO₂ (estimated)
+    money_saved = total_rides * 4.50  # dollars (estimated)
+    cars_removed = max(students - total_rides, 0)
 
     return render_template(
         "dashboard.html",
-        metrics=metrics,
-        pools=pools
+        user=user,
+        children=children,
+        rides=rides,
+        requests=requests,
+        notifications=notifications,
+        total_rides=total_rides,
+        students=students,
+        co2_saved=co2_saved,
+        money_saved=money_saved,
+        cars_removed=cars_removed,
     )
 
 
+# =========================
+# ADD CHILD
+# =========================
 
 
-# =====================================================
-# MATCHING ALGORITHM
-# =====================================================
+@app.route("/add-child")
+def add_child_page():
 
-def calculate_match(user_preferences, group):
+    if not logged_in():
+        return redirect(url_for("login_page"))
 
-    """
-    Calculates compatibility score.
+    return render_template("add-child.html")
 
-    Factors:
 
-    Organization 40%
-    Destination 30%
-    Departure time 20%
-    Availability 10%
+@app.route("/add-child", methods=["POST"])
+def add_child():
 
-    """
+    if not logged_in():
+        return redirect(url_for("login_page"))
 
-    score = 0
+    name = request.form.get("name", "")
 
+    grade = request.form.get("grade_level", "")
 
+    campus = request.form.get("campus", "")
 
-    # Organization match
+    activities = request.form.get("activities", "")
 
-    if (
-        user_preferences.get("organization")
-        and
-        user_preferences["organization"].lower()
-        in group["organization"].lower()
-    ):
+    if not name:
+        flash("Child name required.")
 
-        score += 40
+        return redirect(url_for("add_child_page"))
 
-
-
-    # Destination match
-
-    if (
-        user_preferences.get("destination")
-        and
-        user_preferences["destination"].lower()
-        in group["destination"].lower()
-    ):
-
-        score += 30
-
-
-
-
-    # Time match
-
-    if (
-        user_preferences.get("departure_time")
-        ==
-        group["departure_time"]
-    ):
-
-        score += 20
-
-
-
-
-    # Open seats
-
-    if (
-        group["seats_filled"]
-        <
-        group["seats_total"]
-    ):
-
-        score += 10
-
-    return score
-
-
-# =====================================================
-# FIND GROUP PAGE
-# =====================================================
-
-@app.route("/find-group")
-def find_group():
-
-    if "user_id" not in session:
-
-        flash(
-            "Please log in to browse groups."
-        )
-
-        return redirect(
-            url_for("login_page")
-        )
-
-
-
-    organization = request.args.get(
-        "org_search",
-        ""
-    ).strip()
-
-
-
-    shift_time = request.args.get(
-        "shift_time",
-        "Any Shift Time"
-    )
-
-
-
-    conn = get_db_connection()
-
-
-
-    query = """
-        SELECT *
-        FROM carpool_groups
-        WHERE 1=1
-    """
-
-
-    params = []
-
-
-
-    if organization:
-
-        query += """
-        AND (
-            organization LIKE ?
-            OR name LIKE ?
-        )
-        """
-
-        params.extend(
-            [
-                f"%{organization}%",
-                f"%{organization}%"
-            ]
-        )
-
-
-
-    if (
-        shift_time !=
-        "Any Shift Time"
-    ):
-
-        if "Morning" in shift_time:
-
-            query += """
-            AND departure_time
-            LIKE '07%'
-            """
-
-        elif "Afternoon" in shift_time:
-
-            query += """
-            AND departure_time
-            LIKE '12%'
-            """
-
-        elif "Evening" in shift_time:
-
-            query += """
-            AND departure_time
-            LIKE '04%'
-            """
-
-
-    groups = conn.execute(
-        query,
-        params
-    ).fetchall()
-
-
-    conn.close()
-
-
-    return render_template(
-        "find-group.html",
-        groups=groups
-    )
-
-
-# =====================================================
-# CREATE A CARPOOL
-# =====================================================
-
-@app.route("/publish", methods=["POST"])
-def publish_route():
-
-    if "user_id" not in session:
-
-        return redirect(
-            url_for("login_page")
-        )
-
-
-
-    role = request.form.get(
-        "role"
-    )
-
-
-    start_point = request.form.get(
-        "start_point"
-    )
-
-
-    destination = request.form.get(
-        "end_point"
-    )
-
-
-    ride_date = request.form.get(
-        "ride_date"
-    )
-
-
-    ride_time = request.form.get(
-        "ride_time"
-    )
-
-
-    seats = request.form.get(
-        "seats",
-        type=int
-    )
-
-    # Format date
-
-    try:
-
-        ride_date = datetime.strptime(
-            ride_date,
-            "%Y-%m-%d"
-        ).strftime(
-            "%b %d, %Y"
-        )
-
-    except:
-
-        pass
-
-    # Format time
-
-    try:
-
-        ride_time = datetime.strptime(
-            ride_time,
-            "%H:%M"
-        ).strftime(
-            "%I:%M %p"
-        )
-
-    except:
-
-        pass
-
-    conn = get_db_connection()
+    conn = get_db()
 
     conn.execute(
         """
-        INSERT INTO active_pools
+        INSERT INTO children(
 
-        (
-        organizer,
-        vehicle,
-        role,
-        start_point,
-        end_point,
-        ride_date,
-        ride_time,
-        seats_filled,
-        seats_total,
-        status
-        )
+            parent_id,
 
+            name,
 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            grade_level,
 
-        """,
+            campus,
 
-        (
-
-        session["user_name"],
-
-        request.form.get(
-            "vehicle",
-            "Unknown Vehicle"
-        ),
-
-        role,
-
-        start_point,
-
-        destination,
-
-        ride_date,
-
-        ride_time,
-
-
-        1 if role == "passenger" else 0,
-
-
-        seats,
-
-
-        "Open"
+            activities
 
         )
 
+        VALUES(?,?,?,?,?)
+
+    """,
+        (session["user_id"], name, grade, campus, activities),
     )
 
     conn.commit()
 
     conn.close()
 
-    flash(
-        "Your carpool has been published!"
-    )
+    flash("Child added!")
+
+    return redirect(url_for("dashboard"))
 
 
-    return redirect(
-        url_for("dashboard")
-    )
+# =========================
+# CREATE RIDE PAGE
+# =========================
 
 
-# =====================================================
-# REQUEST TO JOIN GROUP
-# =====================================================
+@app.route("/create-ride")
+def create_ride_page():
 
-@app.route(
-    "/join-group/<int:group_id>",
-    methods=["POST"]
-)
-def join_group(group_id):
+    if not logged_in():
+        return redirect(url_for("login_page"))
 
+    conn = get_db()
 
-    if "user_id" not in session:
-
-        return redirect(
-            url_for("login_page")
-        )
-
-    conn = get_db_connection()
-
-    group = conn.execute(
+    children = conn.execute(
         """
         SELECT *
-        FROM carpool_groups
-        WHERE id = ?
-        """,
 
-        (group_id,)
+        FROM children
+
+        WHERE parent_id=?
+
+
+    """,
+        (session["user_id"],),
+    ).fetchall()
+
+    conn.close()
+
+    return render_template("create-ride.html", children=children)
+
+
+# =========================
+# CREATE RIDE
+# =========================
+
+
+@app.route("/create-ride", methods=["POST"])
+def create_ride():
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    child_id = request.form.get("child_id")
+
+    ride_type = request.form.get("ride_type")
+
+    campus = request.form.get("campus")
+
+    neighborhood = request.form.get("neighborhood")
+
+    weekday = request.form.get("weekday")
+
+    start_point = request.form.get("start_point")
+
+    destination = request.form.get("destination")
+
+    departure_time = request.form.get("departure_time")
+
+    seats = request.form.get("seats", 4, type=int)
+
+    conn = get_db()
+
+    # Make sure parent owns child
+
+    child = conn.execute(
+        """
+        SELECT *
+
+        FROM children
+
+        WHERE id=?
+
+        AND parent_id=?
+
+
+    """,
+        (child_id, session["user_id"]),
     ).fetchone()
 
-    if not group:
-
-        flash(
-            "Group does not exist."
-        )
-
+    if not child:
         conn.close()
 
-        return redirect(
-            url_for("find_group")
-        )
+        flash("Invalid child selection.")
 
-    if (
-        group["seats_filled"]
-        >=
-        group["seats_total"]
-    ):
-
-        flash(
-            "This group is already full."
-        )
-
-        conn.close()
-
-        return redirect(
-            url_for("find_group")
-        )
+        return redirect(url_for("create_ride_page"))
 
     conn.execute(
         """
-        UPDATE carpool_groups
+        INSERT INTO active_pools(
+
+            driver_id,
+
+            child_id,
+
+            campus,
+
+            ride_type,
+
+            neighborhood,
+
+            weekday,
+
+            start_point,
+
+            destination,
+
+            departure_time,
+
+            seats_total,
+
+            seats_filled,
+
+            status
+
+        )
+
+
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+
+    """,
+        (
+            session["user_id"],
+            child_id,
+            campus,
+            ride_type,
+            neighborhood,
+            weekday,
+            start_point,
+            destination,
+            departure_time,
+            seats,
+            1,
+            "Open",
+        ),
+    )
+
+    conn.commit()
+
+    conn.close()
+
+    flash("Carpool created!")
+
+    return redirect(url_for("dashboard"))
+
+
+# =========================
+# FIND RIDES
+# =========================
+
+
+@app.route("/find-rides")
+def find_rides():
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    campus = request.args.get("campus", "")
+
+    neighborhood = request.args.get("neighborhood", "")
+
+    ride_type = request.args.get("ride_type", "")
+
+    conn = get_db()
+
+    query = """
+
+    SELECT
+
+        active_pools.*,
+
+        users.name AS driver_name,
+
+        children.name AS child_name
+
+
+    FROM active_pools
+
+
+    JOIN users
+
+    ON active_pools.driver_id = users.id
+
+
+    JOIN children
+
+    ON active_pools.child_id = children.id
+
+
+    WHERE status='Open'
+
+
+    """
+
+    params = []
+
+    if campus:
+        query += """
+        AND active_pools.campus=?
+        """
+
+        params.append(campus)
+
+    if neighborhood:
+        query += """
+        AND active_pools.neighborhood=?
+        """
+
+        params.append(neighborhood)
+
+    if ride_type:
+        query += """
+        AND active_pools.ride_type=?
+        """
+
+        params.append(ride_type)
+
+    query += """
+        ORDER BY active_pools.id DESC
+    """
+
+    rides = conn.execute(query, params).fetchall()
+
+    children = conn.execute(
+        """
+        SELECT *
+
+        FROM children
+
+        WHERE parent_id=?
+
+    """,
+        (session["user_id"],),
+    ).fetchall()
+
+    conn.close()
+
+    return render_template("find-rides.html", rides=rides, children=children)
+
+
+# =========================
+# REQUEST RIDE
+# =========================
+
+
+@app.route("/request-ride/<int:pool_id>", methods=["POST"])
+def request_ride(pool_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    child_id = request.form.get("child_id")
+
+    conn = get_db()
+
+    child = conn.execute(
+        """
+        SELECT *
+
+        FROM children
+
+        WHERE id=?
+
+        AND parent_id=?
+
+    """,
+        (child_id, session["user_id"]),
+    ).fetchone()
+
+    if not child:
+        conn.close()
+
+        flash("Invalid child.")
+
+        return redirect(url_for("find_rides"))
+
+    existing = conn.execute(
+        """
+        SELECT *
+
+        FROM ride_requests
+
+        WHERE pool_id=?
+
+        AND child_id=?
+
+        AND status='Pending'
+
+    """,
+        (pool_id, child_id),
+    ).fetchone()
+
+    if existing:
+        conn.close()
+
+        flash("Request already sent.")
+
+        return redirect(url_for("find_rides"))
+
+    conn.execute(
+        """
+        INSERT INTO ride_requests(
+
+            pool_id,
+
+            child_id,
+
+            parent_id,
+
+            status
+
+        )
+
+        VALUES(?,?,?,?)
+
+    """,
+        (pool_id, child_id, session["user_id"], "Pending"),
+    )
+
+    driver = conn.execute(
+        """
+        SELECT driver_id
+
+        FROM active_pools
+
+        WHERE id=?
+
+    """,
+        (pool_id,),
+    ).fetchone()
+
+    conn.execute(
+        """
+        INSERT INTO notifications(
+
+            user_id,
+
+            message
+
+        )
+
+        VALUES(?,?)
+
+    """,
+        (driver["driver_id"], "New ride request received."),
+    )
+
+    conn.commit()
+
+    conn.close()
+
+    flash("Ride request sent.")
+
+    return redirect(url_for("find_rides"))
+
+
+# =========================
+# APPROVE REQUEST
+# =========================
+
+
+@app.route("/approve-request/<int:request_id>", methods=["POST"])
+def approve_request(request_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    req = conn.execute(
+        """
+        SELECT *
+
+        FROM ride_requests
+
+        WHERE id=?
+
+    """,
+        (request_id,),
+    ).fetchone()
+
+    if not req:
+        conn.close()
+
+        return redirect(url_for("dashboard"))
+
+    conn.execute(
+        """
+        UPDATE ride_requests
+
+        SET status='Approved'
+
+        WHERE id=?
+
+    """,
+        (request_id,),
+    )
+
+    conn.execute(
+        """
+        INSERT INTO ride_members(
+
+            pool_id,
+
+            child_id,
+
+            parent_id,
+
+            status
+
+        )
+
+        VALUES(?,?,?,?)
+
+    """,
+        (req["pool_id"], req["child_id"], req["parent_id"], "Approved"),
+    )
+
+    conn.execute(
+        """
+        UPDATE active_pools
 
         SET seats_filled =
         seats_filled + 1
 
-        WHERE id = ?
+        WHERE id=?
 
-        """,
-
-        (group_id,)
+    """,
+        (req["pool_id"],),
     )
-
-    conn.commit()
-
-    conn.close()
-
-
-    flash(
-        "You successfully joined this carpool!"
-    )
-
-    return redirect(
-        url_for("dashboard")
-    )
-
-
-# =====================================================
-# CANCEL CARPOOL
-# =====================================================
-
-@app.route(
-    "/cancel-pool/<int:pool_id>",
-    methods=["POST"]
-)
-def cancel_pool(pool_id):
-
-    if "user_id" not in session:
-
-        return redirect(
-            url_for("login_page")
-        )
-
-
-
-    conn = get_db_connection()
-
-
-
-    pool = conn.execute(
-        """
-        SELECT *
-        FROM active_pools
-        WHERE id = ?
-        """,
-
-        (pool_id,)
-    ).fetchone()
-
-
-
-    if not pool:
-
-        flash(
-            "Carpool not found."
-        )
-
-        conn.close()
-
-        return redirect(
-            url_for("dashboard")
-        )
-
-
-
-    # Only owner can delete ride
-
-    if (
-        pool["organizer"]
-        !=
-        session["user_name"]
-    ):
-
-        flash(
-            "You cannot cancel another user's ride."
-        )
-
-        conn.close()
-
-        return redirect(
-            url_for("dashboard")
-        )
-
-
 
     conn.execute(
         """
-        DELETE FROM active_pools
-        WHERE id = ?
-        """,
+        INSERT INTO notifications(
 
-        (pool_id,)
+            user_id,
+
+            message
+
+        )
+
+        VALUES(?,?)
+
+    """,
+        (req["parent_id"], "Your ride request was approved."),
     )
-
 
     conn.commit()
 
     conn.close()
 
+    flash("Request approved.")
+
+    return redirect(url_for("dashboard"))
 
 
-    flash(
-        "Carpool successfully cancelled."
-    )
+# =========================
+# REJECT REQUEST
+# =========================
 
 
+@app.route("/reject-request/<int:request_id>", methods=["POST"])
+def reject_request(request_id):
 
-    return redirect(
-        url_for("dashboard")
-    )
+    if not logged_in():
+        return redirect(url_for("login_page"))
 
+    conn = get_db()
 
-
-
-
-# =====================================================
-# LEAVE GROUP
-# =====================================================
-
-@app.route(
-    "/leave-group/<int:group_id>",
-    methods=["POST"]
-)
-def leave_group(group_id):
-
-
-    if "user_id" not in session:
-
-        return redirect(
-            url_for("login_page")
-        )
-
-
-
-    conn = get_db_connection()
-
-
-
-    group = conn.execute(
+    req = conn.execute(
         """
-        SELECT *
-        FROM carpool_groups
-        WHERE id = ?
-        """,
+        SELECT parent_id
 
-        (group_id,)
+        FROM ride_requests
+
+        WHERE id=?
+
+    """,
+        (request_id,),
     ).fetchone()
 
+    conn.execute(
+        """
+        UPDATE ride_requests
 
+        SET status='Rejected'
 
-    if not group:
+        WHERE id=?
 
-        flash(
-            "Group not found."
+    """,
+        (request_id,),
+    )
+
+    conn.execute(
+        """
+        INSERT INTO notifications(
+
+            user_id,
+
+            message
+
         )
 
+        VALUES(?,?)
+
+    """,
+        (req["parent_id"], "Your ride request was rejected."),
+    )
+
+    conn.commit()
+
+    conn.close()
+
+    flash("Request rejected.")
+
+    return redirect(url_for("dashboard"))
+
+
+# =========================
+# RIDE CHAT
+# =========================
+
+
+@app.route("/ride-chat/<int:pool_id>")
+def ride_chat(pool_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    ride = conn.execute(
+        """
+        SELECT
+
+        active_pools.*,
+
+        users.name AS driver_name,
+
+        children.name AS child_name
+
+
+        FROM active_pools
+
+
+        JOIN users
+
+        ON active_pools.driver_id = users.id
+
+
+        JOIN children
+
+        ON active_pools.child_id = children.id
+
+
+        WHERE active_pools.id=?
+
+
+    """,
+        (pool_id,),
+    ).fetchone()
+
+    if not ride:
         conn.close()
 
-        return redirect(
-            url_for("dashboard")
-        )
+        flash("Ride not found.")
+
+        return redirect(url_for("dashboard"))
+
+    messages = conn.execute(
+        """
+        SELECT
+
+        ride_messages.*,
+
+        users.name
 
 
+        FROM ride_messages
 
-    if group["seats_filled"] > 0:
 
+        JOIN users
+
+        ON ride_messages.user_id = users.id
+
+
+        WHERE pool_id=?
+
+
+        ORDER BY id ASC
+
+
+    """,
+        (pool_id,),
+    ).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "ride-chat.html", ride=ride, messages=messages, pool_id=pool_id
+    )
+
+
+@app.route("/ride-chat/<int:pool_id>/send", methods=["POST"])
+def send_message(pool_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    message = request.form.get("message", "").strip()
+
+    if message:
+        conn = get_db()
 
         conn.execute(
             """
-            UPDATE carpool_groups
+            INSERT INTO ride_messages(
 
-            SET seats_filled =
-            seats_filled - 1
+                pool_id,
 
-            WHERE id = ?
+                user_id,
 
-            """,
+                message
 
-            (group_id,)
+            )
+
+            VALUES(?,?,?)
+
+        """,
+            (pool_id, session["user_id"], message),
         )
-
 
         conn.commit()
 
+        conn.close()
 
-        flash(
-            "You left the carpool group."
-        )
-
-
-    else:
-
-        flash(
-            "You are not currently in this group."
-        )
+    return redirect(url_for("ride_chat", pool_id=pool_id))
 
 
-
-    conn.close()
-
-
-
-    return redirect(
-        url_for("dashboard")
-    )
+# =========================
+# LOGOUT
+# =========================
 
 
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    flash("Logged out.")
+
+    return redirect(url_for("home"))
 
 
+# =========================
+# ERROR HANDLING
+# =========================
 
-# =====================================================
-# UPDATE GROUP STATUS
-# =====================================================
-
-def update_group_status():
-
-    """
-    Automatically changes groups:
-
-    Open
-    ↓
-    Full
-
-    when seats run out.
-    """
-
-
-    conn = get_db_connection()
-
-
-
-    conn.execute(
-        """
-        UPDATE carpool_groups
-
-        SET status = 'Full'
-
-        WHERE seats_filled >= seats_total
-
-        """
-    )
-
-
-
-    conn.execute(
-        """
-        UPDATE carpool_groups
-
-        SET status = 'Open'
-
-        WHERE seats_filled < seats_total
-
-        """
-    )
-
-
-    conn.commit()
-
-    conn.close()
-
-
-
-
-
-# =====================================================
-# DATABASE INITIALIZATION CHECK
-# =====================================================
-
-@app.before_request
-def before_request():
-
-    """
-    Runs before every request.
-
-    Keeps group statuses updated.
-    """
-
-    update_group_status()
-
-
-
-
-
-# =====================================================
-# ERROR HANDLERS
-# =====================================================
 
 @app.errorhandler(404)
 def page_not_found(error):
 
-    return (
-        render_template(
-            "404.html"
-        ),
-        404
-    )
-
+    return redirect(url_for("home"))
 
 
 @app.errorhandler(500)
-def internal_error(error):
+def server_error(error):
 
-    flash(
-        "Something went wrong. Please try again."
-    )
+    flash("Something went wrong.")
 
-    return redirect(
-        url_for("home")
-    )
+    if logged_in():
+        return redirect(url_for("dashboard"))
 
+    return redirect(url_for("home"))
 
 
+# =========================
+# PROFILE
+# =========================
 
 
-# =====================================================
-# START APPLICATION
-# =====================================================
+@app.route("/profile")
+def profile():
+
+    conn = get_db()
+
+    user = conn.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE id=?
+
+    """,
+        (session["user_id"],),
+    ).fetchone()
+
+    return render_template("profile.html", user=user)
+
+
+# =========================
+# START SERVER
+# =========================
+
 
 if __name__ == "__main__":
-
-    app.run(
-        debug=True
-    )
+    app.run(debug=True)

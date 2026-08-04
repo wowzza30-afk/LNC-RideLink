@@ -447,15 +447,21 @@ def create_ride():
 
     child_id = request.form["child_id"]
 
-    ride_type = request.form["ride_type"]
+    neighborhood = request.form["neighborhood"]
 
     campus = request.form["campus"]
 
-    neighborhood = request.form["neighborhood"]
+    ride_type = request.form["ride_type"]
 
-    start_point = request.form["start_point"]
+    if ride_type == "Morning Drop-off":
 
-    destination = request.form["destination"]
+        start_point = neighborhood
+        destination = campus
+
+    elif ride_type == "Afternoon Dismissal":
+
+        start_point = campus
+        destination = neighborhood
 
     departure_time = request.form["departure_time"]
 

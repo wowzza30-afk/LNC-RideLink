@@ -305,7 +305,66 @@ def dashboard():
         (session["user_id"],),
     ).fetchall()
 
+
+    requests = conn.execute(
+        """
+        SELECT
+
+            ride_requests.*,
+
+            children.name AS child_name
+
+        ...
+        """,
+        (session["user_id"],),
+    ).fetchall()
+
+
+    joined_rides = conn.execute(
+        """
+        SELECT
+
+            active_pools.*,
+
+            users.name AS driver_name,
+
+            children.name AS child_name
+
+
+        FROM ride_members
+
+
+        JOIN active_pools
+
+        ON ride_members.pool_id = active_pools.id
+
+
+        JOIN users
+
+        ON active_pools.driver_id = users.id
+
+
+        JOIN children
+
+        ON active_pools.child_id = children.id
+
+
+        WHERE ride_members.parent_id=?
+
+
+        AND ride_members.status='Approved'
+
+
+        ORDER BY active_pools.id DESC
+
+        """,
+        (session["user_id"],),
+    ).fetchall()
+
+
     conn.close()
+
+    
 
     # =========================
     # IMPACT METRICS
@@ -333,6 +392,7 @@ def dashboard():
         students=students,
         co2_saved=co2_saved,
         money_saved=money_saved,
+        joined_rides=joined_rides,
         cars_removed=cars_removed,
     )
 

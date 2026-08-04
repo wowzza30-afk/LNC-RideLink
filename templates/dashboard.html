@@ -211,6 +211,60 @@ MY RIDES
 </div>
 
 <!-- =========================
+MY JOINED CARPOOLS
+========================= -->
+
+<h3 class="text-white mb-3">
+  <i class="bi bi-people-fill text-success me-2"></i>
+
+  My Joined Carpools
+</h3>
+
+<div class="row g-4 mb-5">
+  {% for ride in joined_rides %}
+
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary p-4 h-100">
+      <h5 class="text-white">{{ ride.child_name }}'s Ride</h5>
+
+      <span class="badge bg-success mb-3"> Joined </span>
+
+      <p class="text-secondary">
+        <i class="bi bi-person me-2"></i>
+
+        Driver: {{ ride.driver_name }}
+      </p>
+
+      <p class="text-secondary">
+        <i class="bi bi-geo-alt me-2"></i>
+
+        {{ ride.start_point }} → {{ ride.destination }}
+      </p>
+
+      <p class="text-secondary">
+        <i class="bi bi-clock me-2"></i>
+
+        {{ ride.departure_time }}
+      </p>
+
+      <a href="/ride-chat/{{ ride.id }}" class="btn btn-outline-info">
+        <i class="bi bi-chat me-2"></i>
+
+        Ride Chat
+      </a>
+    </div>
+  </div>
+
+  {% else %}
+
+  <div class="text-center py-4">
+    <p class="text-secondary">You have not joined any carpools yet.</p>
+  </div>
+
+  {% endfor %}
+</div>
+
+<!-- =========================
 REQUESTS
 ========================= -->
 

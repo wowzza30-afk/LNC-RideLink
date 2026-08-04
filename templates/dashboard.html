@@ -142,7 +142,11 @@ MY RIDES
     My Created Carpools
   </h3>
 
-  <a href="/create-ride" class="btn btn-outline-info"> Create Ride </a>
+  <a href="/add-child" class="btn btn-info text-dark fw-bold">
+    <i class="bi bi-plus-circle me-2"></i>
+
+    Create Carpool
+  </a>
 </div>
 
 <div class="row g-4 mb-5">
@@ -213,12 +217,19 @@ MY RIDES
 <!-- =========================
 MY JOINED CARPOOLS
 ========================= -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="text-white mb-3">
+    <i class="bi bi-people-fill text-success me-2"></i>
 
-<h3 class="text-white mb-3">
-  <i class="bi bi-people-fill text-success me-2"></i>
+    My Joined Carpools
+  </h3>
 
-  My Joined Carpools
-</h3>
+  <a href="/add-child" class="btn btn-info text-dark fw-bold">
+    <i class="bi bi-search me-2"></i>
+
+    Find Rides
+  </a>
+</div>
 
 <div class="row g-4 mb-5">
   {% for ride in joined_rides %}

@@ -309,12 +309,15 @@ def dashboard():
     requests = conn.execute(
         """
         SELECT
-
             ride_requests.*,
-
             children.name AS child_name
-
-        ...
+        FROM ride_requests
+        JOIN children
+            ON ride_requests.child_id = children.id
+        JOIN active_pools
+            ON ride_requests.pool_id = active_pools.id
+        WHERE active_pools.driver_id = ?
+        AND ride_requests.status = 'Pending'
         """,
         (session["user_id"],),
     ).fetchall()

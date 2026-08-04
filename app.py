@@ -42,11 +42,15 @@ def logged_in():
 @app.route("/")
 def home():
 
-    print(session)
+    print("HOME ROUTE HIT")
+    print("SESSION:", session)
+    print("LOGGED IN:", logged_in())
 
     if logged_in():
+        print("REDIRECTING TO DASHBOARD")
         return redirect(url_for("dashboard"))
 
+    print("SHOWING LANDING PAGE")
     return render_template("index.html")
 
 
@@ -178,6 +182,9 @@ def login():
 
 @app.route("/dashboard")
 def dashboard():
+
+    print("SESSION:", session)
+    print("LOGGED IN:", logged_in())
 
     if not logged_in():
         return redirect(url_for("login_page"))
@@ -1048,6 +1055,8 @@ def send_message(pool_id):
 def logout():
 
     session.clear()
+
+    print("AFTER LOGOUT:", session)
 
     flash("Logged out.")
 

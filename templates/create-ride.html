@@ -1,130 +1,165 @@
-{% extends "base.html" %} {% block title %} RideLink - Create Ride {% endblock
-%} {% block content %}
+{% extends "base.html" %} {% block title %} Create Carpool {% endblock %} {%
+block content %}
 
-<div class="row justify-content-center">
-  <div class="col-md-7">
-    <div class="card bg-dark border-secondary p-4">
-      <h2 class="text-white mb-4">
-        <i class="bi bi-car-front text-info me-2"></i>
+<div class="container">
+  <div class="mb-5">
+    <h1 class="text-white fw-bold">
+      <i class="bi bi-car-front-fill text-info me-2"></i>
+      Create Carpool
+    </h1>
 
-        Create Ride
-      </h2>
+    <p class="text-secondary">
+      Create a recurring schedule for your child's transportation.
+    </p>
+  </div>
 
-      <form action="/create-ride" method="POST">
-        <div class="mb-3">
-          <label class="text-secondary"> Child </label>
+  <div class="card bg-dark border-secondary p-4">
+    <form action="/create-ride" method="POST">
+      <!-- Child -->
 
-          <select class="form-select" name="child_id" required>
-            {% for child in children %}
+      <div class="mb-4">
+        <label class="form-label text-secondary"> Child </label>
 
-            <option value="{{ child.id }}">{{ child.name }}</option>
+        <select class="form-select" name="child_id" required>
+          {% for child in children %}
 
-            {% endfor %}
-          </select>
+          <option value="{{ child.id }}">{{ child.name }}</option>
+
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Ride Type -->
+
+      <div class="mb-4">
+        <label class="form-label text-secondary"> Ride Type </label>
+
+        <select class="form-select" name="ride_type" required>
+          <option>Morning Drop-off</option>
+
+          <option>Afternoon Pickup</option>
+
+          <option>Sports</option>
+
+          <option>Club</option>
+
+          <option>Other</option>
+        </select>
+      </div>
+
+      <!-- Campus -->
+
+      <div class="mb-4">
+        <label class="form-label text-secondary"> Campus </label>
+
+        <select class="form-select" name="campus" required>
+          <option>Elementary</option>
+
+          <option>Middle School</option>
+
+          <option>High School</option>
+        </select>
+      </div>
+
+      <!-- Neighborhood -->
+
+      <div class="mb-4">
+        <label class="form-label text-secondary"> Neighborhood </label>
+
+        <input class="form-control" name="neighborhood" required />
+      </div>
+
+      <!-- Start -->
+
+      <div class="mb-4">
+        <label class="form-label text-secondary"> Pickup Location </label>
+
+        <input class="form-control" name="start_point" required />
+      </div>
+
+      <!-- Destination -->
+
+      <div class="mb-4">
+        <label class="form-label text-secondary"> Destination </label>
+
+        <input class="form-control" name="destination" required />
+      </div>
+
+      <!-- Time -->
+
+      <div class="mb-4">
+        <label class="form-label text-secondary"> Departure Time </label>
+
+        <input
+          type="time"
+          class="form-control"
+          name="departure_time"
+          required
+        />
+      </div>
+
+      <!-- Seats -->
+
+      <div class="mb-4">
+        <label class="form-label text-secondary"> Available Seats </label>
+
+        <input
+          type="number"
+          class="form-control"
+          min="2"
+          max="8"
+          value="4"
+          name="seats"
+        />
+      </div>
+
+      <!-- Schedule -->
+
+      <h5 class="text-info mb-3">Weekly Schedule</h5>
+
+      <div class="row mb-4">
+        {% for day in [ ("monday","Monday"), ("tuesday","Tuesday"),
+        ("wednesday","Wednesday"), ("thursday","Thursday"), ("friday","Friday"),
+        ("saturday","Saturday"), ("sunday","Sunday") ] %}
+
+        <div class="col-md-3 mb-2">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="{{ day[0] }}"
+              value="1"
+            />
+
+            <label class="form-check-label text-white"> {{ day[1] }} </label>
+          </div>
         </div>
 
-        <div class="mb-3">
-          <label class="text-secondary"> Campus </label>
+        {% endfor %}
+      </div>
 
-          <select class="form-select" name="campus">
-            <option>Elementary</option>
-            <option>Middle School</option>
-            <option>High School</option>
-          </select>
+      <!-- Dates -->
+
+      <div class="row">
+        <div class="col-md-6 mb-4">
+          <label class="form-label text-secondary"> Start Date </label>
+
+          <input type="date" class="form-control" name="start_date" required />
         </div>
 
-        <div class="mb-3">
-          <label class="text-secondary"> Ride Type </label>
+        <div class="col-md-6 mb-4">
+          <label class="form-label text-secondary"> End Date </label>
 
-          <select class="form-select" name="ride_type">
-            <option>Morning Arrival</option>
-            <option>Afternoon Pickup</option>
-            <option>Sports</option>
-          </select>
+          <input type="date" class="form-control" name="end_date" />
         </div>
+      </div>
 
-        <div class="mb-3">
-          <label class="text-secondary"> Neighborhood Location</label>
-          <select class="form-select" name="neighborhood">
-            <option>Harrisburg</option>
+      <button class="btn btn-info text-dark fw-bold w-100">
+        <i class="bi bi-check-circle me-2"></i>
 
-            <option>Huntersville</option>
-
-            <option>Cornelius</option>
-
-            <option>Davidson</option>
-
-            <option>Concord</option>
-
-            <option>Charlotte</option>
-
-            <option>Other</option>
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label class="text-secondary"> Starting Point </label>
-
-          <input
-            class="form-control"
-            name="start_point"
-            placeholder="Home address or area"
-            required
-          />
-        </div>
-
-        <div class="mb-3">
-          <label class="text-secondary"> Destination </label>
-
-          <input
-            class="form-control"
-            name="destination"
-            placeholder="School / Activity"
-            required
-          />
-        </div>
-
-        <div class="mb-3">
-          <label class="text-secondary"> Weekday </label>
-
-          <select class="form-select" name="weekday">
-            <option>Monday</option>
-            <option>Tuesday</option>
-            <option>Wednesday</option>
-            <option>Thursday</option>
-            <option>Friday</option>
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label class="text-secondary"> Departure Time </label>
-
-          <input
-            type="time"
-            class="form-control"
-            name="departure_time"
-            required
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="text-secondary"> Available Seats </label>
-
-          <input
-            type="number"
-            class="form-control"
-            name="seats"
-            value="4"
-            min="1"
-            max="10"
-          />
-        </div>
-
-        <button class="btn btn-info text-dark fw-bold w-100">
-          Publish Ride
-        </button>
-      </form>
-    </div>
+        Publish Carpool
+      </button>
+    </form>
   </div>
 </div>
 

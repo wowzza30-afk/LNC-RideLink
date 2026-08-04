@@ -82,65 +82,52 @@ def init_database():
     # =========================
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS active_pools(
+    CREATE TABLE IF NOT EXISTS active_pools (
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-
         driver_id INTEGER NOT NULL,
-
 
         child_id INTEGER NOT NULL,
 
-
         campus TEXT NOT NULL,
-
 
         ride_type TEXT NOT NULL,
 
-
-        neighborhood TEXT,
-
-
-        weekday TEXT,
-
+        neighborhood TEXT NOT NULL,
 
         start_point TEXT NOT NULL,
 
-
         destination TEXT NOT NULL,
-
 
         departure_time TEXT NOT NULL,
 
-
-        seats_total INTEGER DEFAULT 4,
-
+        seats_total INTEGER NOT NULL,
 
         seats_filled INTEGER DEFAULT 1,
 
-
         status TEXT DEFAULT 'Open',
 
+        monday INTEGER DEFAULT 0,
+        tuesday INTEGER DEFAULT 0,
+        wednesday INTEGER DEFAULT 0,
+        thursday INTEGER DEFAULT 0,
+        friday INTEGER DEFAULT 0,
+        saturday INTEGER DEFAULT 0,
+        sunday INTEGER DEFAULT 0,
+
+        start_date TEXT NOT NULL,
+        end_date TEXT,
 
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-
-
         FOREIGN KEY(driver_id)
-
-        REFERENCES users(id)
-
-        ON DELETE CASCADE,
-
-
+            REFERENCES users(id)
+            ON DELETE CASCADE,
 
         FOREIGN KEY(child_id)
-
-        REFERENCES children(id)
-
-        ON DELETE CASCADE
-
+            REFERENCES children(id)
+            ON DELETE CASCADE
     )
     """)
 

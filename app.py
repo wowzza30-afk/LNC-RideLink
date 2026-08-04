@@ -42,6 +42,8 @@ def logged_in():
 @app.route("/")
 def home():
 
+    print(session)
+
     if logged_in():
         return redirect(url_for("dashboard"))
 
@@ -420,48 +422,62 @@ def create_ride():
     if not logged_in():
         return redirect(url_for("login_page"))
 
-    child_id = request.form.get("child_id")
+    child_id = request.form["child_id"]
 
-    ride_type = request.form.get("ride_type")
+    ride_type = request.form["ride_type"]
 
-    campus = request.form.get("campus")
+    campus = request.form["campus"]
 
-    neighborhood = request.form.get("neighborhood")
+    neighborhood = request.form["neighborhood"]
 
-    weekday = request.form.get("weekday")
+    start_point = request.form["start_point"]
 
-    start_point = request.form.get("start_point")
+    destination = request.form["destination"]
 
-    destination = request.form.get("destination")
+    departure_time = request.form["departure_time"]
 
-    departure_time = request.form.get("departure_time")
+    seats = int(request.form["seats"])
 
-    seats = request.form.get("seats", 4, type=int)
+    # Weekly schedule
+    monday = 1 if request.form.get("monday") else 0
+    tuesday = 1 if request.form.get("tuesday") else 0
+    wednesday = 1 if request.form.get("wednesday") else 0
+    thursday = 1 if request.form.get("thursday") else 0
+    friday = 1 if request.form.get("friday") else 0
+    saturday = 1 if request.form.get("saturday") else 0
+    sunday = 1 if request.form.get("sunday") else 0
+
+    start_date = request.form["start_date"]
+    end_date = request.form.get("end_date")
 
     conn = get_db()
 
-    # Make sure parent owns child
-
+    # Verify the child belongs to the logged-in parent
     child = conn.execute(
         """
         SELECT *
-
         FROM children
-
-        WHERE id=?
-
-        AND parent_id=?
-
-
-    """,
+        WHERE id=? AND parent_id=?
+        """,
         (child_id, session["user_id"]),
     ).fetchone()
 
     if not child:
         conn.close()
-
-        flash("Invalid child selection.")
-
+        flash("Invalid child selected.")
+        return redirect(url_for("create_ride_page"))
+    
+    if not any([
+        monday,
+        tuesday,
+        wednesday,
+        thursday,
+        friday,
+        saturday,
+        sunday
+    ]):
+        flash("Please select at least one day of the week.")
+        conn.close()
         return redirect(url_for("create_ride_page"))
 
     conn.execute(
@@ -469,59 +485,69 @@ def create_ride():
         INSERT INTO active_pools(
 
             driver_id,
-
             child_id,
-
             campus,
-
             ride_type,
-
             neighborhood,
-
-            weekday,
-
             start_point,
-
             destination,
-
             departure_time,
-
             seats_total,
-
             seats_filled,
+            status,
 
-            status
+            monday,
+            tuesday,
+            wednesday,
+            thursday,
+            friday,
+            saturday,
+            sunday,
+
+            start_date,
+            end_date
 
         )
 
-
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
-
-    """,
+        VALUES(
+            ?,?,?,?,?,?,?,?,?,?,
+            ?,
+            ?,?,?,?,?,?,?,?,
+            ?,?
+        )
+        """,
         (
             session["user_id"],
             child_id,
             campus,
             ride_type,
             neighborhood,
-            weekday,
             start_point,
             destination,
             departure_time,
             seats,
             1,
             "Open",
+
+            monday,
+            tuesday,
+            wednesday,
+            thursday,
+            friday,
+            saturday,
+            sunday,
+
+            start_date,
+            end_date,
         ),
     )
 
     conn.commit()
-
     conn.close()
 
-    flash("Carpool created!")
+    flash("Recurring carpool created!")
 
     return redirect(url_for("dashboard"))
-
 
 # =========================
 # FIND RIDES
@@ -1061,6 +1087,9 @@ def server_error(error):
 @app.route("/profile")
 def profile():
 
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
     conn = get_db()
 
     user = conn.execute(
@@ -1082,4 +1111,4 @@ def profile():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

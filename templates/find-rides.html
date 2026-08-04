@@ -117,6 +117,25 @@ RIDES
         </p>
       </div>
 
+      <div class="mt-3">
+        <span class="text-secondary">
+          <i class="bi bi-calendar-week me-2"></i>
+          Schedule
+        </span>
+
+        <p class="text-white small mt-2">
+          {% if ride.monday %}Mon {% endif %} {% if ride.tuesday %}Tue {% endif
+          %} {% if ride.wednesday %}Wed {% endif %} {% if ride.thursday %}Thu {%
+          endif %} {% if ride.friday %}Fri {% endif %} {% if ride.saturday %}Sat
+          {% endif %} {% if ride.sunday %}Sun {% endif %}
+        </p>
+
+        <p class="text-secondary small">
+          {{ ride.start_date }} {% if ride.end_date %} → {{ ride.end_date }} {%
+          endif %}
+        </p>
+      </div>
+
       <div class="border-top border-secondary pt-3">
         <form action="/request-ride/{{ ride.id }}" method="POST">
           <label class="text-secondary small"> Select Child </label>

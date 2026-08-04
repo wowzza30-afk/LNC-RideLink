@@ -166,6 +166,25 @@ MY RIDES
         {{ ride.departure_time }}
       </p>
 
+      <div class="mt-3">
+        <p class="text-secondary mb-1">
+          <i class="bi bi-calendar-week me-2"></i>
+          Weekly Schedule
+        </p>
+
+        <p class="text-white small">
+          {% if ride.monday %}Mon {% endif %} {% if ride.tuesday %}Tue {% endif
+          %} {% if ride.wednesday %}Wed {% endif %} {% if ride.thursday %}Thu {%
+          endif %} {% if ride.friday %}Fri {% endif %} {% if ride.saturday %}Sat
+          {% endif %} {% if ride.sunday %}Sun {% endif %}
+        </p>
+
+        <p class="text-secondary small">
+          {{ ride.start_date }} {% if ride.end_date %} → {{ ride.end_date }} {%
+          endif %}
+        </p>
+      </div>
+
       <p class="text-secondary">
         Seats:
 

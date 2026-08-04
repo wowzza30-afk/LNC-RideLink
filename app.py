@@ -31,7 +31,23 @@ def get_db():
 
 def logged_in():
 
-    return "user_id" in session
+    if "user_id" not in session:
+        return False
+
+    conn = get_db()
+
+    user = conn.execute(
+        "SELECT id FROM users WHERE id=?",
+        (session["user_id"],)
+    ).fetchone()
+
+    conn.close()
+
+    if not user:
+        session.clear()
+        return False
+
+    return True
 
 
 # =========================

@@ -591,8 +591,6 @@ def find_rides():
 
     AND active_pools.driver_id != ?
 
-    AND active_pools.driver_id != session["user_id"]
-
 
     """
 

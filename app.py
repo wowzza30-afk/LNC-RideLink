@@ -589,10 +589,14 @@ def find_rides():
 
     WHERE status='Open'
 
+    AND active_pools.driver_id != ?
+
+    AND active_pools.driver_id != session["user_id"]
+
 
     """
 
-    params = []
+    params = [session["user_id"]]
 
     if campus:
         query += """

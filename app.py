@@ -415,37 +415,41 @@ def dashboard():
 
     conn.close()
 
-    # =========================
-    # IMPACT METRICS
-    # =========================
+# =========================
+# IMPACT METRICS
+# =========================
 
     total_rides = len(rides)
 
-    students = 0
+    students_connected = 0
 
     for ride in rides:
-        students += ride["seats_filled"] - 1
 
-    co2_saved = total_rides * 12  # lbs of CO₂ (estimated)
-    money_saved = total_rides * 4.50  # dollars (estimated)
-    cars_removed = max(students - total_rides, 0)
+        passengers = ride["seats_filled"] - 1
 
-    return render_template(
-        "dashboard.html",
-        user=user,
-        children=children,
-        rides=rides,
-        ride_passengers=ride_passengers,
-        joined_passengers=joined_passengers,
-        requests=requests,
-        notifications=notifications,
-        total_rides=total_rides,
-        students=students,
-        co2_saved=co2_saved,
-        money_saved=money_saved,
-        joined_rides=joined_rides,
-        cars_removed=cars_removed,
-    )
+        if passengers > 0:
+            students_connected += passengers
+
+        money_saved = students_connected * 3
+        co2_saved = students_connected * 12
+        cars_removed = students_connected
+
+        return render_template(
+            "dashboard.html",
+            user=user,
+            children=children,
+            rides=rides,
+            ride_passengers=ride_passengers,
+            joined_passengers=joined_passengers,
+            requests=requests,
+            notifications=notifications,
+            total_rides=total_rides,
+            students=students_connected,
+            co2_saved=co2_saved,
+            money_saved=money_saved,
+            joined_rides=joined_rides,
+            cars_removed=cars_removed,
+        )
 
 
 # =========================

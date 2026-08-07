@@ -38,8 +38,7 @@ def logged_in():
     conn = get_db()
 
     user = conn.execute(
-        "SELECT id FROM users WHERE id=?",
-        (session["user_id"],)
+        "SELECT id FROM users WHERE id=?", (session["user_id"],)
     ).fetchone()
 
     conn.close()
@@ -261,7 +260,6 @@ def dashboard():
     ride_passengers = {}
 
     for ride in rides:
-
         passengers = conn.execute(
             """
             SELECT
@@ -330,7 +328,6 @@ def dashboard():
         (session["user_id"],),
     ).fetchall()
 
-
     requests = conn.execute(
         """
         SELECT
@@ -346,7 +343,6 @@ def dashboard():
         """,
         (session["user_id"],),
     ).fetchall()
-
 
     joined_rides = conn.execute(
         """
@@ -392,8 +388,8 @@ def dashboard():
     joined_passengers = {}
 
     for ride in joined_rides:
-
-        passengers = conn.execute("""
+        passengers = conn.execute(
+            """
             SELECT
 
                 children.name,
@@ -411,14 +407,13 @@ def dashboard():
             WHERE ride_members.pool_id=?
 
             ORDER BY children.name
-        """,(ride["id"],)).fetchall()
+        """,
+            (ride["id"],),
+        ).fetchall()
 
         joined_passengers[ride["id"]] = passengers
 
-
     conn.close()
-
-    
 
     # =========================
     # IMPACT METRICS
@@ -518,9 +513,11 @@ def add_child():
 
     return redirect(url_for("dashboard"))
 
+
 # =========================
 # EDIT CHILD
 # =========================
+
 
 @app.route("/edit-child/<int:child_id>")
 def edit_child_page(child_id):
@@ -530,11 +527,14 @@ def edit_child_page(child_id):
 
     conn = get_db()
 
-    child = conn.execute("""
+    child = conn.execute(
+        """
         SELECT *
         FROM children
         WHERE id=? AND parent_id=?
-    """, (child_id, session["user_id"])).fetchone()
+    """,
+        (child_id, session["user_id"]),
+    ).fetchone()
 
     conn.close()
 
@@ -544,6 +544,7 @@ def edit_child_page(child_id):
 
     return render_template("edit-child.html", child=child)
 
+
 @app.route("/edit-child/<int:child_id>", methods=["POST"])
 def edit_child(child_id):
 
@@ -552,7 +553,8 @@ def edit_child(child_id):
 
     conn = get_db()
 
-    conn.execute("""
+    conn.execute(
+        """
         UPDATE children
         SET
             name=?,
@@ -560,16 +562,16 @@ def edit_child(child_id):
             campus=?,
             activities=?
         WHERE id=? AND parent_id=?
-    """, (
-
-        request.form["name"],
-        request.form["grade_level"],
-        request.form["campus"],
-        request.form["activities"],
-        child_id,
-        session["user_id"]
-
-    ))
+    """,
+        (
+            request.form["name"],
+            request.form["grade_level"],
+            request.form["campus"],
+            request.form["activities"],
+            child_id,
+            session["user_id"],
+        ),
+    )
 
     conn.commit()
     conn.close()
@@ -578,9 +580,11 @@ def edit_child(child_id):
 
     return redirect(url_for("dashboard"))
 
+
 # =========================
 # DELETE CHILD
 # =========================
+
 
 @app.route("/delete-child/<int:child_id>", methods=["POST"])
 def delete_child(child_id):
@@ -590,10 +594,13 @@ def delete_child(child_id):
 
     conn = get_db()
 
-    conn.execute("""
+    conn.execute(
+        """
         DELETE FROM children
         WHERE id=? AND parent_id=?
-    """, (child_id, session["user_id"]))
+    """,
+        (child_id, session["user_id"]),
+    )
 
     conn.commit()
     conn.close()
@@ -601,6 +608,7 @@ def delete_child(child_id):
     flash("Child deleted.")
 
     return redirect(url_for("dashboard"))
+
 
 # =========================
 # CREATE RIDE PAGE
@@ -653,12 +661,10 @@ def create_ride():
     ride_type = request.form["ride_type"]
 
     if ride_type == "Morning Drop-off":
-
         start_point = neighborhood
         destination = campus
 
     elif ride_type == "Afternoon Dismissal":
-
         start_point = campus
         destination = neighborhood
 
@@ -694,16 +700,8 @@ def create_ride():
         conn.close()
         flash("Invalid child selected.")
         return redirect(url_for("create_ride_page"))
-    
-    if not any([
-        monday,
-        tuesday,
-        wednesday,
-        thursday,
-        friday,
-        saturday,
-        sunday
-    ]):
+
+    if not any([monday, tuesday, wednesday, thursday, friday, saturday, sunday]):
         flash("Please select at least one day of the week.")
         conn.close()
         return redirect(url_for("create_ride_page"))
@@ -751,7 +749,6 @@ def create_ride():
             seats,
             1,
             "Open",
-
             monday,
             tuesday,
             wednesday,
@@ -759,7 +756,6 @@ def create_ride():
             friday,
             saturday,
             sunday,
-
             start_date,
             end_date,
         ),
@@ -772,13 +768,16 @@ def create_ride():
 
     return redirect(url_for("dashboard"))
 
+
 # =========================
 # TIME FILTER
 # =========================
 
+
 @app.template_filter("time12")
 def time12(value):
     return datetime.strptime(value, "%H:%M").strftime("%I:%M %p").lstrip("0")
+
 
 # =========================
 # FIND RIDES
@@ -875,9 +874,11 @@ def find_rides():
 
     return render_template("find-rides.html", rides=rides, children=children)
 
+
 # =========================
 # EDIT RIDE
 # =========================
+
 
 @app.route("/edit-ride/<int:ride_id>")
 def edit_ride_page(ride_id):
@@ -887,11 +888,14 @@ def edit_ride_page(ride_id):
 
     conn = get_db()
 
-    ride = conn.execute("""
+    ride = conn.execute(
+        """
         SELECT *
         FROM active_pools
         WHERE id=? AND driver_id=?
-    """, (ride_id, session["user_id"])).fetchone()
+    """,
+        (ride_id, session["user_id"]),
+    ).fetchone()
 
     conn.close()
 
@@ -901,6 +905,7 @@ def edit_ride_page(ride_id):
 
     return render_template("edit-ride.html", ride=ride)
 
+
 @app.route("/edit-ride/<int:ride_id>", methods=["POST"])
 def edit_ride(ride_id):
 
@@ -909,7 +914,8 @@ def edit_ride(ride_id):
 
     conn = get_db()
 
-    conn.execute("""
+    conn.execute(
+        """
         UPDATE active_pools
         SET
 
@@ -921,17 +927,16 @@ def edit_ride(ride_id):
         WHERE id=?
         AND driver_id=?
 
-    """, (
-
-        request.form["campus"],
-        request.form["neighborhood"],
-        request.form["departure_time"],
-        request.form["seats"],
-
-        ride_id,
-        session["user_id"]
-
-    ))
+    """,
+        (
+            request.form["campus"],
+            request.form["neighborhood"],
+            request.form["departure_time"],
+            request.form["seats"],
+            ride_id,
+            session["user_id"],
+        ),
+    )
 
     conn.commit()
     conn.close()
@@ -940,9 +945,11 @@ def edit_ride(ride_id):
 
     return redirect(url_for("dashboard"))
 
+
 # =========================
 # DELETE RIDE
 # =========================
+
 
 @app.route("/delete-ride/<int:ride_id>", methods=["POST"])
 def delete_ride(ride_id):
@@ -952,16 +959,14 @@ def delete_ride(ride_id):
 
     conn = get_db()
 
-    conn.execute("""
+    conn.execute(
+        """
         DELETE FROM active_pools
         WHERE id=?
         AND driver_id=?
-    """, (
-
-        ride_id,
-        session["user_id"]
-
-    ))
+    """,
+        (ride_id, session["user_id"]),
+    )
 
     conn.commit()
     conn.close()
@@ -969,6 +974,7 @@ def delete_ride(ride_id):
     flash("Ride deleted.")
 
     return redirect(url_for("dashboard"))
+
 
 # =========================
 # REQUEST RIDE

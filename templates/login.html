@@ -1,5 +1,5 @@
-{% extends "base.html" %} {% block title %} LNC RideLink - Parent Login {% endblock
-%} {% block navbar %} {% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %} LNC RideLink - Parent Login {%
+endblock %} {% block navbar %} {% endblock %} {% block content %}
 
 <div
   class="d-flex justify-content-center align-items-center"
@@ -14,7 +14,9 @@
 
       <h1 class="text-white fw-bold mt-3">LNC RideLink</h1>
 
-      <p class="text-secondary">Safe community transportation for Lake Norman Charter School.</p>
+      <p class="text-secondary">
+        Safe community transportation for Lake Norman Charter School.
+      </p>
     </div>
 
     <ul class="nav nav-pills nav-fill mb-4">
@@ -111,9 +113,14 @@ REGISTER
           </div>
 
           <div class="mb-3">
-            <label class="text-secondary"> Neighborhood Location</label>
+            <label class="form-label"> Neighborhood Location </label>
 
-            <select class="form-select" name="neighborhood">
+            <select
+              id="neighborhood"
+              name="neighborhood"
+              class="form-select"
+              onchange="toggleNeighborhood()"
+            >
               <option>Harrisburg</option>
 
               <option>Huntersville</option>
@@ -126,8 +133,21 @@ REGISTER
 
               <option>Charlotte</option>
 
-              <option>Other</option>
+              <option>Moorseville</option>
+
+              <option value="Other">Other</option>
             </select>
+          </div>
+
+          <div id="other-neighborhood-div" class="mb-3" style="display: none">
+            <label class="form-label"> Enter Neighborhood Location</label>
+
+            <input
+              type="text"
+              id="other-neighborhood"
+              class="form-control"
+              placeholder="Example: Denver"
+            />
           </div>
 
           <div class="mb-4">
@@ -153,4 +173,31 @@ REGISTER
   </div>
 </div>
 
+<script>
+  function toggleNeighborhood() {
+    const dropdown = document.getElementById("neighborhood");
+    const otherDiv = document.getElementById("other-neighborhood-div");
+    const otherInput = document.getElementById("other-neighborhood");
+
+    if (dropdown.value === "Other") {
+      otherDiv.style.display = "block";
+
+      otherInput.name = "neighborhood";
+
+      dropdown.name = "";
+
+      otherInput.required = true;
+    } else {
+      otherDiv.style.display = "none";
+
+      otherInput.name = "";
+
+      dropdown.name = "neighborhood";
+
+      otherInput.required = false;
+
+      otherInput.value = "";
+    }
+  }
+</script>
 {% endblock %} {% block footer %} {% endblock %}

@@ -424,7 +424,7 @@ def dashboard():
     students = 0
 
     for ride in rides:
-        students += ride["seats_filled"]
+        students += ride["seats_filled"] - 1
 
     co2_saved = total_rides * 12  # lbs of CO₂ (estimated)
     money_saved = total_rides * 4.50  # dollars (estimated)

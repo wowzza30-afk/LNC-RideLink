@@ -37,9 +37,15 @@ FILTERS
       </select>
     </div>
 
-    <div class="col-md-4">
-      <label class="text-secondary"> Neighborhood Location</label>
-      <select class="form-select" name="neighborhood">
+    <div class="mb-3">
+      <label class="form-label"> Neighborhood Location </label>
+
+      <select
+        id="neighborhood"
+        name="neighborhood"
+        class="form-select"
+        onchange="toggleNeighborhood()"
+      >
         <option>Harrisburg</option>
 
         <option>Huntersville</option>
@@ -52,8 +58,21 @@ FILTERS
 
         <option>Charlotte</option>
 
-        <option>Other</option>
+        <option>Moorseville</option>
+
+        <option value="Other">Other</option>
       </select>
+    </div>
+
+    <div id="other-neighborhood-div" class="mb-3" style="display: none">
+      <label class="form-label"> Enter Neighborhood Location</label>
+
+      <input
+        type="text"
+        id="other-neighborhood"
+        class="form-control"
+        placeholder="Example: Denver"
+      />
     </div>
 
     <div class="col-md-4">
@@ -113,7 +132,7 @@ RIDES
         <p class="text-secondary">
           <i class="bi bi-clock me-2"></i>
 
-          {{ ride.departure_time }}
+          {{ ride.departure_time | time12 }}
         </p>
       </div>
 
@@ -173,4 +192,27 @@ RIDES
   {% endfor %}
 </div>
 
+<script>
+  function toggleNeighborhood() {
+    const dropdown = document.getElementById("neighborhood");
+    const otherDiv = document.getElementById("other-neighborhood-div");
+    const otherInput = document.getElementById("other-neighborhood");
+
+    if (dropdown.value === "Other") {
+      otherDiv.style.display = "block";
+
+      dropdown.removeAttribute("name");
+
+      otherInput.setAttribute("name", "neighborhood");
+    } else {
+      otherDiv.style.display = "none";
+
+      otherInput.removeAttribute("name");
+
+      dropdown.setAttribute("name", "neighborhood");
+
+      otherInput.value = "";
+    }
+  }
+</script>
 {% endblock %}

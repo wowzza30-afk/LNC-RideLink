@@ -119,6 +119,23 @@ CHILDREN
       <p class="text-secondary mb-1">Campus: {{ child.campus }}</p>
 
       <p class="text-secondary">Activities: {{ child.activities or "None" }}</p>
+
+      <div class="mt-3">
+        <a
+          href="/edit-child/{{ child.id }}"
+          class="btn btn-outline-info btn-sm"
+        >
+          Edit
+        </a>
+
+        <form
+          action="/delete-child/{{ child.id }}"
+          method="POST"
+          class="d-inline"
+        >
+          <button class="btn btn-outline-danger btn-sm">Delete</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -142,7 +159,7 @@ MY RIDES
     My Created Carpools
   </h3>
 
-  <a href="/add-child" class="btn btn-info text-dark fw-bold">
+  <a href="/create-ride" class="btn btn-info text-dark fw-bold">
     <i class="bi bi-plus-circle me-2"></i>
 
     Create Carpool
@@ -157,6 +174,7 @@ MY RIDES
       <h5 class="text-white">{{ ride.child_name }}'s Ride</h5>
 
       <span class="badge bg-success mb-3"> {{ ride.status }} </span>
+      <hr class="border-secondary" />
 
       <p class="text-secondary">
         <i class="bi bi-geo-alt me-2"></i>
@@ -167,27 +185,58 @@ MY RIDES
       <p class="text-secondary">
         <i class="bi bi-clock me-2"></i>
 
-        {{ ride.departure_time }}
+        {{ ride.departure_time | time12}}
       </p>
 
-      <div class="mt-3">
-        <p class="text-secondary mb-1">
-          <i class="bi bi-calendar-week me-2"></i>
-          Weekly Schedule
-        </p>
+      <p class="text-secondary mb-1">
+        <i class="bi bi-calendar-week me-2"></i>
+        Weekly Schedule
+      </p>
 
-        <p class="text-white small">
-          {% if ride.monday %}Mon {% endif %} {% if ride.tuesday %}Tue {% endif
-          %} {% if ride.wednesday %}Wed {% endif %} {% if ride.thursday %}Thu {%
-          endif %} {% if ride.friday %}Fri {% endif %} {% if ride.saturday %}Sat
-          {% endif %} {% if ride.sunday %}Sun {% endif %}
-        </p>
+      <p class="text-white small">
+        {% if ride.monday %}Mon {% endif %} {% if ride.tuesday %}Tue {% endif %}
+        {% if ride.wednesday %}Wed {% endif %} {% if ride.thursday %}Thu {%
+        endif %} {% if ride.friday %}Fri {% endif %} {% if ride.saturday %}Sat
+        {% endif %} {% if ride.sunday %}Sun {% endif %}
+      </p>
 
-        <p class="text-secondary small">
-          {{ ride.start_date }} {% if ride.end_date %} → {{ ride.end_date }} {%
-          endif %}
-        </p>
-      </div>
+      <p class="text-secondary small">
+        {{ ride.start_date }} {% if ride.end_date %} → {{ ride.end_date }} {%
+        endif %}
+      </p>
+
+      <hr class="border-secondary" />
+      <p class="text-secondary mb-1">
+        <i class="bi bi-person-fill me-2"></i>
+
+        Driver
+      </p>
+
+      <p class="text-white">{{ user.name }}</p>
+
+      <p class="text-secondary mb-2">
+        <i class="bi bi-people-fill me-2"></i>
+
+        Passengers
+      </p>
+
+      {% if ride_passengers[ride.id] %}
+
+      <ul class="list-group list-group-flush">
+        {% for passenger in ride_passengers[ride.id] %}
+
+        <li class="list-group-item bg-dark text-white border-secondary">
+          {{ passenger.name }}
+        </li>
+
+        {% endfor %}
+      </ul>
+
+      {% else %}
+
+      <p class="text-secondary">No passengers yet.</p>
+
+      {% endif %}
 
       <p class="text-secondary">
         Seats:
@@ -197,11 +246,24 @@ MY RIDES
         </strong>
       </p>
 
-      <a href="/ride-chat/{{ ride.id }}" class="btn btn-outline-info">
-        <i class="bi bi-chat me-2"></i>
+      <div class="mt-2 pt-2 d-flex flex-wrap gap-2">
+        <a href="/ride-chat/{{ ride.id }}" class="btn btn-outline-info btn-sm">
+          <i class="bi bi-chat"></i>
+          Ride Chat
+        </a>
 
-        Ride Chat
-      </a>
+        <a href="/edit-ride/{{ ride.id }}" class="btn btn-outline-info btn-sm">
+          Edit Ride
+        </a>
+
+        <form
+          action="/delete-ride/{{ ride.id }}"
+          method="POST"
+          class="d-inline"
+        >
+          <button class="btn btn-outline-danger btn-sm">Delete Ride</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -217,6 +279,7 @@ MY RIDES
 <!-- =========================
 MY JOINED CARPOOLS
 ========================= -->
+
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="text-white mb-3">
     <i class="bi bi-people-fill text-success me-2"></i>
@@ -255,7 +318,7 @@ MY JOINED CARPOOLS
       <p class="text-secondary">
         <i class="bi bi-clock me-2"></i>
 
-        {{ ride.departure_time }}
+        {{ ride.departure_time | time12}}
       </p>
 
       <a href="/ride-chat/{{ ride.id }}" class="btn btn-outline-info">
@@ -263,6 +326,99 @@ MY JOINED CARPOOLS
 
         Ride Chat
       </a>
+      <div class="row g-4 mb-5">
+        {% for ride in joined_rides %}
+
+        <div class="col-md-6 col-lg-4">
+          <div class="card bg-dark border-secondary p-4 h-100">
+            <h5 class="text-white">{{ ride.child_name }}'s Ride</h5>
+
+            <span class="badge bg-success mb-3"> {{ ride.status }} </span>
+
+            <p class="text-secondary mb-1">
+              <i class="bi bi-person-fill me-2"></i>
+              Driver
+            </p>
+
+            <p class="text-white">{{ ride.driver_name }}</p>
+
+            <p class="text-secondary">
+              <i class="bi bi-geo-alt me-2"></i>
+
+              {{ ride.start_point }} → {{ ride.destination }}
+            </p>
+
+            <p class="text-secondary">
+              <i class="bi bi-clock me-2"></i>
+
+              {{ ride.departure_time }}
+            </p>
+
+            <hr class="border-secondary" />
+
+            <p class="text-secondary mb-2">
+              <i class="bi bi-people-fill me-2"></i>
+
+              Everyone Riding
+            </p>
+
+            {% if joined_passengers[ride.id] %}
+
+            <ul class="list-group list-group-flush mb-3">
+              {% for passenger in joined_passengers[ride.id] %}
+
+              <li class="list-group-item bg-dark text-white border-secondary">
+                {% if passenger.parent_name == user.name %}
+
+                <span class="text-info fw-bold">
+                  <i class="bi bi-person-check-fill me-2"></i>
+
+                  {{ passenger.name }} (Your Child)
+                </span>
+
+                {% else %}
+
+                <i class="bi bi-person-fill me-2"></i>
+
+                {{ passenger.name }} {% endif %}
+              </li>
+
+              {% endfor %}
+            </ul>
+
+            {% else %}
+
+            <p class="text-secondary">No passengers yet.</p>
+
+            {% endif %}
+
+            <p class="text-secondary">
+              Seats:
+
+              <strong class="text-white">
+                {{ ride.seats_filled }}/{{ ride.seats_total }}
+              </strong>
+            </p>
+
+            <a
+              href="/ride-chat/{{ ride.id }}"
+              class="btn btn-outline-success w-100"
+            >
+              <i class="bi bi-chat-dots me-2"></i>
+
+              Ride Chat
+            </a>
+          </div>
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-4">
+          <p class="text-secondary">You haven't joined any carpools yet.</p>
+        </div>
+
+        {% endfor %}
+      </div>
     </div>
   </div>
 

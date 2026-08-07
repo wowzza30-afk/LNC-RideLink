@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import sqlite3
 import os
+from datetime import datetime
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -86,7 +87,7 @@ def login_page():
 # =========================
 
 
-@app.route("/register", methods=["POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
 
     name = request.form.get("name", "").strip()
@@ -257,6 +258,30 @@ def dashboard():
         (session["user_id"],),
     ).fetchall()
 
+    ride_passengers = {}
+
+    for ride in rides:
+
+        passengers = conn.execute(
+            """
+            SELECT
+
+                children.name
+
+            FROM ride_members
+
+            JOIN children
+                ON ride_members.child_id = children.id
+
+            WHERE ride_members.pool_id=?
+
+            ORDER BY children.name
+            """,
+            (ride["id"],),
+        ).fetchall()
+
+        ride_passengers[ride["id"]] = passengers
+
     notifications = conn.execute(
         """
         SELECT *
@@ -364,6 +389,32 @@ def dashboard():
         (session["user_id"],),
     ).fetchall()
 
+    joined_passengers = {}
+
+    for ride in joined_rides:
+
+        passengers = conn.execute("""
+            SELECT
+
+                children.name,
+
+                users.name AS parent_name
+
+            FROM ride_members
+
+            JOIN children
+                ON ride_members.child_id = children.id
+
+            JOIN users
+                ON ride_members.parent_id = users.id
+
+            WHERE ride_members.pool_id=?
+
+            ORDER BY children.name
+        """,(ride["id"],)).fetchall()
+
+        joined_passengers[ride["id"]] = passengers
+
 
     conn.close()
 
@@ -389,6 +440,8 @@ def dashboard():
         user=user,
         children=children,
         rides=rides,
+        ride_passengers=ride_passengers,
+        joined_passengers=joined_passengers,
         requests=requests,
         notifications=notifications,
         total_rides=total_rides,
@@ -465,6 +518,89 @@ def add_child():
 
     return redirect(url_for("dashboard"))
 
+# =========================
+# EDIT CHILD
+# =========================
+
+@app.route("/edit-child/<int:child_id>")
+def edit_child_page(child_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    child = conn.execute("""
+        SELECT *
+        FROM children
+        WHERE id=? AND parent_id=?
+    """, (child_id, session["user_id"])).fetchone()
+
+    conn.close()
+
+    if not child:
+        flash("Child not found.")
+        return redirect(url_for("dashboard"))
+
+    return render_template("edit-child.html", child=child)
+
+@app.route("/edit-child/<int:child_id>", methods=["POST"])
+def edit_child(child_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    conn.execute("""
+        UPDATE children
+        SET
+            name=?,
+            grade_level=?,
+            campus=?,
+            activities=?
+        WHERE id=? AND parent_id=?
+    """, (
+
+        request.form["name"],
+        request.form["grade_level"],
+        request.form["campus"],
+        request.form["activities"],
+        child_id,
+        session["user_id"]
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+    flash("Child updated!")
+
+    return redirect(url_for("dashboard"))
+
+# =========================
+# DELETE CHILD
+# =========================
+
+@app.route("/delete-child/<int:child_id>", methods=["POST"])
+def delete_child(child_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    conn.execute("""
+        DELETE FROM children
+        WHERE id=? AND parent_id=?
+    """, (child_id, session["user_id"]))
+
+    conn.commit()
+    conn.close()
+
+    flash("Child deleted.")
+
+    return redirect(url_for("dashboard"))
 
 # =========================
 # CREATE RIDE PAGE
@@ -637,6 +773,14 @@ def create_ride():
     return redirect(url_for("dashboard"))
 
 # =========================
+# TIME FILTER
+# =========================
+
+@app.template_filter("time12")
+def time12(value):
+    return datetime.strptime(value, "%H:%M").strftime("%I:%M %p").lstrip("0")
+
+# =========================
 # FIND RIDES
 # =========================
 
@@ -731,6 +875,100 @@ def find_rides():
 
     return render_template("find-rides.html", rides=rides, children=children)
 
+# =========================
+# EDIT RIDE
+# =========================
+
+@app.route("/edit-ride/<int:ride_id>")
+def edit_ride_page(ride_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    ride = conn.execute("""
+        SELECT *
+        FROM active_pools
+        WHERE id=? AND driver_id=?
+    """, (ride_id, session["user_id"])).fetchone()
+
+    conn.close()
+
+    if not ride:
+        flash("Ride not found.")
+        return redirect(url_for("dashboard"))
+
+    return render_template("edit-ride.html", ride=ride)
+
+@app.route("/edit-ride/<int:ride_id>", methods=["POST"])
+def edit_ride(ride_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    conn.execute("""
+        UPDATE active_pools
+        SET
+
+            campus=?,
+            neighborhood=?,
+            departure_time=?,
+            seats_total=?
+
+        WHERE id=?
+        AND driver_id=?
+
+    """, (
+
+        request.form["campus"],
+        request.form["neighborhood"],
+        request.form["departure_time"],
+        request.form["seats"],
+
+        ride_id,
+        session["user_id"]
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+    flash("Ride updated!")
+
+    return redirect(url_for("dashboard"))
+
+# =========================
+# DELETE RIDE
+# =========================
+
+@app.route("/delete-ride/<int:ride_id>", methods=["POST"])
+def delete_ride(ride_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    conn.execute("""
+        DELETE FROM active_pools
+        WHERE id=?
+        AND driver_id=?
+    """, (
+
+        ride_id,
+        session["user_id"]
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+    flash("Ride deleted.")
+
+    return redirect(url_for("dashboard"))
 
 # =========================
 # REQUEST RIDE

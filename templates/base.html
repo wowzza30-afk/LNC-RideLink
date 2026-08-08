@@ -109,14 +109,6 @@
     {% endblock %}
 
     <main class="container py-5">
-      {% with messages = get_flashed_messages() %} {% if messages %} {% for
-      message in messages %}
-
-      <div class="alert alert-info">
-        <i class="bi bi-info-circle me-2"></i>
-
-        {{ message }}
-      </div>
 
       {% endfor %} {% endif %} {% endwith %} {% block content %} {% endblock %}
     </main>

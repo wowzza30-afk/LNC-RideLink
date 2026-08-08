@@ -223,9 +223,12 @@ MY RIDES
       {% if ride_passengers[ride.id] %}
 
       <ul class="list-group list-group-flush">
+        <li class="list-group-item bg-dark text-white">
+          {{ child.name }}
+        </li>
         {% for passenger in ride_passengers[ride.id] %}
 
-        <li class="list-group-item bg-dark text-white border-secondary">
+        <li class="list-group-item bg-dark text-white">
           {{ passenger.name }}
         </li>
 

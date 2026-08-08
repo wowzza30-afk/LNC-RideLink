@@ -103,12 +103,16 @@ REGISTER
           </div>
 
           <div class="mb-3">
-            <label class="text-secondary"> Phone Number </label>
+            <label class="form-label text-secondary">Phone Number</label>
 
             <input
+              type="tel"
               class="form-control"
               name="phone"
-              placeholder="(555) 555-5555"
+              id="phone"
+              placeholder="(704) 555-1234"
+              maxlength="14"
+              required
             />
           </div>
 
@@ -199,5 +203,29 @@ REGISTER
       otherInput.value = "";
     }
   }
+</script>
+
+<script>
+  const phoneInput = document.getElementById("phone");
+
+  phoneInput.addEventListener("input", function () {
+    let numbers = this.value.replace(/\D/g, "");
+
+    numbers = numbers.substring(0, 10);
+
+    if (numbers.length > 6) {
+      this.value =
+        "(" +
+        numbers.substring(0, 3) +
+        ") " +
+        numbers.substring(3, 6) +
+        "-" +
+        numbers.substring(6);
+    } else if (numbers.length > 3) {
+      this.value = "(" + numbers.substring(0, 3) + ") " + numbers.substring(3);
+    } else if (numbers.length > 0) {
+      this.value = "(" + numbers;
+    }
+  });
 </script>
 {% endblock %} {% block footer %} {% endblock %}

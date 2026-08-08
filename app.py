@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 from datetime import datetime
+import re
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -95,7 +96,15 @@ def register():
 
     password = request.form.get("password", "")
 
-    phone = request.form.get("phone", "")
+    phone = request.form.get("phone", "").strip()
+
+    phone_numbers = re.sub(r"\D", "", phone)
+
+    if len(phone_numbers) != 10:
+        flash("Please enter a valid 10-digit phone number.")
+        return redirect(url_for("login_page"))
+
+    phone = f"({phone_numbers[:3]}) {phone_numbers[3:6]}-{phone_numbers[6:]}"
 
     neighborhood = request.form.get("neighborhood", "")
 
@@ -1073,7 +1082,7 @@ def edit_ride(ride_id):
         start_point = neighborhood
         destination = campus
 
-    elif ride_type in ["Afternoon Pickup", "Afternoon Dismissal"]:
+    elif ride_type == "Afternoon Dismissal":
         start_point = campus
         destination = neighborhood
 
@@ -1496,8 +1505,11 @@ def delete_ride(ride_id):
         (ride_id, session["user_id"]),
     )
 
+    print("ROWS DELETED:", conn.execute(
+        "SELECT changes()"
+    ).fetchone()[0])
+
     conn.commit()
-    conn.close()
 
     flash("Ride deleted.")
 
@@ -1696,4 +1708,4 @@ def profile():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

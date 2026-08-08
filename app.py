@@ -1448,6 +1448,63 @@ def reject_request(request_id):
 
 
 # =========================
+# DELETE RIDE
+# =========================
+
+@app.route("/delete-ride/<int:ride_id>", methods=["POST"])
+def delete_ride(ride_id):
+
+    if not logged_in():
+        return redirect(url_for("login_page"))
+
+    conn = get_db()
+
+    ride = conn.execute(
+        """
+        SELECT id
+        FROM active_pools
+        WHERE id=? AND driver_id=?
+        """,
+        (ride_id, session["user_id"]),
+    ).fetchone()
+
+    if not ride:
+        conn.close()
+        flash("Ride not found.")
+        return redirect(url_for("dashboard"))
+
+    conn.execute(
+        "DELETE FROM ride_messages WHERE pool_id=?",
+        (ride_id,),
+    )
+
+    conn.execute(
+        "DELETE FROM ride_members WHERE pool_id=?",
+        (ride_id,),
+    )
+
+    conn.execute(
+        "DELETE FROM ride_requests WHERE pool_id=?",
+        (ride_id,),
+    )
+
+    conn.execute(
+        """
+        DELETE FROM active_pools
+        WHERE id=? AND driver_id=?
+        """,
+        (ride_id, session["user_id"]),
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash("Ride deleted.")
+
+    return redirect(url_for("dashboard"))
+
+
+# =========================
 # RIDE CHAT
 # =========================
 

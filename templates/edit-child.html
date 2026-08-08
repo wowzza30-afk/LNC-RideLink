@@ -1,0 +1,57 @@
+{% extends "base.html" %} 
+
+{% block title %}Edit Child - LNC RideLink{% endblock %} 
+
+{% block content %} 
+<div class="mb-4"> 
+    <h1 class="text-white fw-bold"> 
+        <i class="bi bi-pencil-square text-info me-2"></i> Edit Child </h1> 
+    <p class="text-secondary">Update your child's information.</p> 
+</div> 
+
+<div class="card bg-dark border-secondary p-4"> 
+    <form method="POST"> 
+        <div class="mb-3"> 
+            <label class="text-secondary">Child Name</label> 
+            <input type="text" class="form-control" name="name" value="{{ child.name }}" placeholder="Child name" required /> 
+        </div> 
+        
+        <div class="mb-3"> 
+            <label class="text-secondary">Grade Level</label> 
+            <select class="form-select" name="grade_level" required> 
+                <option value="Kindergarten" {% if child.grade_level == 'Kindergarten' %}selected{% endif %}>Kindergarten</option> 
+                <option value="1st Grade" {% if child.grade_level == '1st Grade' %}selected{% endif %}>1st Grade</option> 
+                <option value="2nd Grade" {% if child.grade_level == '2nd Grade' %}selected{% endif %}>2nd Grade</option> 
+                <option value="3rd Grade" {% if child.grade_level == '3rd Grade' %}selected{% endif %}>3rd Grade</option> 
+                <option value="4th Grade" {% if child.grade_level == '4th Grade' %}selected{% endif %}>4th Grade</option> 
+                <option value="5th Grade" {% if child.grade_level == '5th Grade' %}selected{% endif %}>5th Grade</option> 
+                <option value="6th Grade" {% if child.grade_level == '6th Grade' %}selected{% endif %}>6th Grade</option> 
+                <option value="7th Grade" {% if child.grade_level == '7th Grade' %}selected{% endif %}>7th Grade</option> 
+                <option value="8th Grade" {% if child.grade_level == '8th Grade' %}selected{% endif %}>8th Grade</option> 
+                <option value="9th Grade" {% if child.grade_level == '9th Grade' %}selected{% endif %}>9th Grade</option> 
+                <option value="10th Grade" {% if child.grade_level == '10th Grade' %}selected{% endif %}>10th Grade</option> 
+                <option value="11th Grade" {% if child.grade_level == '11th Grade' %}selected{% endif %}>11th Grade</option> 
+                <option value="12th Grade" {% if child.grade_level == '12th Grade' %}selected{% endif %}>12th Grade</option> 
+            </select> 
+        </div> 
+        
+        <div class="mb-3"> 
+            <label class="text-secondary">Campus</label> 
+            <select class="form-select" name="campus" required> 
+                <option value="Elementary" {% if child.campus == 'Elementary' %}selected{% endif %}>Elementary</option> 
+                <option value="Middle School" {% if child.campus == 'Middle School' %}selected{% endif %}>Middle School</option> 
+                <option value="High School" {% if child.campus == 'High School' %}selected{% endif %}>High School</option> 
+            </select> 
+        </div> 
+        
+        <div class="mb-4"> 
+            <label class="text-secondary">Activities</label> 
+            <input type="text" class="form-control" name="activities" value="{{ child.activities or '' }}" placeholder="Soccer, Robotics, Band..." /> 
+        </div> 
+        
+        <button type="submit" class="btn btn-info text-dark fw-bold w-100"> 
+            <i class="bi bi-check-circle me-2"></i> Save Changes 
+        </button> 
+    </form> 
+</div> 
+{% endblock %}

@@ -252,7 +252,10 @@ MY RIDES
           Ride Chat
         </a>
 
-        <a href="/edit-ride/{{ ride.id }}" class="btn btn-outline-info btn-sm">
+        <a
+          href="{{ url_for('edit_ride_page', ride_id=ride.id) }}"
+          class="btn btn-outline-info btn-sm"
+        >
           Edit Ride
         </a>
 

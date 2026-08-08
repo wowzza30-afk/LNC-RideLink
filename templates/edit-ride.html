@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Carpool - LNC RideLink{% endblock %}
+
+{% block content %}
+{# Define the carpool alias mapping from your Flask 'ride' variable #}
+{% set carpool = ride %}
+
+<div class="mb-4">
+    <h1 class="text-white fw-bold">
+        <i class="bi bi-pencil-square text-info me-2"></i> Edit Carpool
+    </h1>
+    <p class="text-secondary">Update the details of your recurring carpool.</p>
+</div>
+
+<!-- Card Starts Here -->
+<div class="card bg-dark border-secondary p-4"> 
+    <form method="POST">
+        <!-- Ride Type -->
+        <div class="mb-4">
+            <label class="form-label text-secondary">Ride Type</label>
+            <select class="form-select" name="ride_type" required>
+                <option value="Morning Drop-off" {% if carpool.ride_type == "Morning Drop-off" %}selected{% endif %}>Morning Drop-off</option>
+                <option value="Afternoon Pickup" {% if carpool.ride_type == "Afternoon Pickup" %}selected{% endif %}>Afternoon Pickup</option>
+                <option value="Sports" {% if carpool.ride_type == "Sports" %}selected{% endif %}>Sports</option>
+                <option value="Clubs/Extracurriculars" {% if carpool.ride_type == "Clubs/Extracurriculars" %}selected{% endif %}>Clubs/Extracurriculars</option>
+            </select>
+        </div>
+
+        <!-- Campus -->
+        <div class="mb-4">
+            <label class="form-label text-secondary">Campus</label>
+            <select class="form-select" name="campus" required>
+                <option value="Elementary" {% if carpool.campus == "Elementary" %}selected{% endif %}>Elementary</option>
+                <option value="Middle School" {% if carpool.campus == "Middle School" %}selected{% endif %}>Middle School</option>
+                <option value="High School" {% if carpool.campus == "High School" %}selected{% endif %}>High School</option>
+            </select>
+        </div>
+
+        <!-- Neighborhood Location Setup -->
+        {% set preset_neighborhoods = ["Harrisburg", "Huntersville", "Cornelius", "Davidson", "Concord", "Charlotte", "Mooresville"] %}
+        {% set is_other = carpool.neighborhood not in preset_neighborhoods %}
+        
+        <div class="mb-3">
+            <label class="form-label text-white">Neighborhood Location</label>
+            <select id="neighborhood" class="form-select" onchange="toggleNeighborhood()">
+                {% for place in preset_neighborhoods %}
+                    <option value="{{ place }}" {% if carpool.neighborhood == place %}selected{% endif %}>{{ place }}</option>
+                {% endfor %}
+                <option value="Other" {% if is_other %}selected{% endif %}>Other</option>
+            </select>
+        </div>
+
+        <div id="other-neighborhood-div" class="mb-3 {% if is_other %}d-block{% else %}d-none{% endif %}">
+            <label class="form-label text-white">Enter Neighborhood Location</label>
+            <input type="text" id="other-neighborhood" class="form-control" placeholder="Example: Denver" value="{% if is_other %}{{ carpool.neighborhood }}{% endif %}" />
+        </div>
+
+        <!-- Time -->
+        <div class="mb-4">
+            <label class="form-label text-secondary">Departure Time</label>
+            <input type="time" class="form-control" name="departure_time" value="{{ carpool.departure_time }}" required />
+        </div>
+
+        <!-- Seats -->
+        <div class="mb-4">
+            <label class="form-label text-secondary">Available Seats</label>
+            <input type="number" class="form-control" min="2" max="8" value="{{ carpool.seats or 4 }}" name="seats" required />
+        </div>
+
+        <!-- Schedule -->
+        <h5 class="text-info mb-3">Weekly Schedule</h5>
+        <div class="row mb-4">
+            {% for day_key, day_label in [
+                ("monday", "Monday"),
+                ("tuesday", "Tuesday"),
+                ("wednesday", "Wednesday"),
+                ("thursday", "Thursday"),
+                ("friday", "Friday"),
+                ("saturday", "Saturday"),
+                ("sunday", "Sunday")
+            ] %}
+                <div class="col-md-3 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="{{ day_key }}" value="1" {% if carpool[day_key] %}checked{% endif %} />
+                        <label class="form-check-label text-white">{{ day_label }}</label>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Dates -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <label class="form-label text-secondary">Start Date</label>
+                <input type="date" class="form-control" name="start_date" value="{{ carpool.start_date }}" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label text-secondary">End Date</label>
+                <input type="date" class="form-control" name="end_date" value="{{ carpool.end_date or '' }}" />
+            </div>
+        </div>
+
+        <!-- Form Submission Button -->
+        <button type="submit" class="btn btn-info text-dark fw-bold w-100">
+            <i class="bi bi-check-circle me-2"></i> Save Changes
+        </button>
+    </form>
+</div> 
+<!-- Card Ends Cleanly Here -->
+
+<script>
+function toggleNeighborhood() {
+    const dropdown = document.getElementById("neighborhood");
+    const otherDiv = document.getElementById("other-neighborhood-div");
+    const otherInput = document.getElementById("other-neighborhood");
+
+    if (dropdown.value === "Other") {
+        otherDiv.style.display = "block";
+        otherInput.name = "neighborhood";
+        dropdown.name = "";
+        otherInput.required = true;
+    } else {
+        otherDiv.style.display = "none";
+        otherInput.name = "";
+        dropdown.name = "neighborhood";
+        otherInput.required = false;
+        otherInput.value = "";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", toggleNeighborhood);
+</script>
+{% endblock %}

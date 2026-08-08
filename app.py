@@ -522,7 +522,6 @@ def add_child():
 # EDIT CHILD
 # =========================
 
-
 @app.route("/edit-child/<int:child_id>")
 def edit_child_page(child_id):
 
@@ -536,7 +535,7 @@ def edit_child_page(child_id):
         SELECT *
         FROM children
         WHERE id=? AND parent_id=?
-    """,
+        """,
         (child_id, session["user_id"]),
     ).fetchone()
 
@@ -555,7 +554,31 @@ def edit_child(child_id):
     if not logged_in():
         return redirect(url_for("login_page"))
 
+    name = request.form.get("name", "").strip()
+    grade_level = request.form.get("grade_level", "").strip()
+    campus = request.form.get("campus", "").strip()
+    activities = request.form.get("activities", "").strip()
+
+    if not name:
+        flash("Child name is required.")
+        return redirect(url_for("edit_child_page", child_id=child_id))
+
     conn = get_db()
+
+    # Make sure this child belongs to the logged-in parent
+    child = conn.execute(
+        """
+        SELECT id
+        FROM children
+        WHERE id=? AND parent_id=?
+        """,
+        (child_id, session["user_id"]),
+    ).fetchone()
+
+    if not child:
+        conn.close()
+        flash("Child not found.")
+        return redirect(url_for("dashboard"))
 
     conn.execute(
         """
@@ -566,12 +589,12 @@ def edit_child(child_id):
             campus=?,
             activities=?
         WHERE id=? AND parent_id=?
-    """,
+        """,
         (
-            request.form["name"],
-            request.form["grade_level"],
-            request.form["campus"],
-            request.form["activities"],
+            name,
+            grade_level,
+            campus,
+            activities,
             child_id,
             session["user_id"],
         ),
@@ -883,7 +906,6 @@ def find_rides():
 # EDIT RIDE
 # =========================
 
-
 @app.route("/edit-ride/<int:ride_id>")
 def edit_ride_page(ride_id):
 
@@ -897,7 +919,7 @@ def edit_ride_page(ride_id):
         SELECT *
         FROM active_pools
         WHERE id=? AND driver_id=?
-    """,
+        """,
         (ride_id, session["user_id"]),
     ).fetchone()
 
@@ -909,34 +931,231 @@ def edit_ride_page(ride_id):
 
     return render_template("edit-ride.html", ride=ride)
 
-
 @app.route("/edit-ride/<int:ride_id>", methods=["POST"])
 def edit_ride(ride_id):
 
     if not logged_in():
         return redirect(url_for("login_page"))
 
+    # -------------------------
+    # Get form values
+    # -------------------------
+
+    ride_type = request.form.get("ride_type", "").strip()
+    campus = request.form.get("campus", "").strip()
+
+    # -------------------------
+    # Neighborhood
+    # -------------------------
+
+    neighborhood = request.form.get("neighborhood", "").strip()
+
+    if neighborhood == "Other":
+        neighborhood = request.form.get(
+            "other_neighborhood", ""
+        ).strip()
+
+        if not neighborhood:
+            flash("Please enter a neighborhood location.")
+            return redirect(
+                url_for("edit_ride_page", ride_id=ride_id)
+            )
+
+    # -------------------------
+    # Departure time
+    # -------------------------
+
+    departure_time = request.form.get(
+        "departure_time", ""
+    ).strip()
+
+    if not departure_time:
+        flash("Please enter a departure time.")
+        return redirect(
+            url_for("edit_ride_page", ride_id=ride_id)
+        )
+
+    # -------------------------
+    # Seats
+    # -------------------------
+
+    try:
+        seats = int(request.form.get("seats", 0))
+    except ValueError:
+        flash("Invalid number of seats.")
+        return redirect(
+            url_for("edit_ride_page", ride_id=ride_id)
+        )
+
+    if seats < 2 or seats > 8:
+        flash("Available seats must be between 2 and 8.")
+        return redirect(
+            url_for("edit_ride_page", ride_id=ride_id)
+        )
+
+    # -------------------------
+    # Weekly schedule
+    # -------------------------
+
+    monday = 1 if request.form.get("monday") else 0
+    tuesday = 1 if request.form.get("tuesday") else 0
+    wednesday = 1 if request.form.get("wednesday") else 0
+    thursday = 1 if request.form.get("thursday") else 0
+    friday = 1 if request.form.get("friday") else 0
+    saturday = 1 if request.form.get("saturday") else 0
+    sunday = 1 if request.form.get("sunday") else 0
+
+    if not any([
+        monday,
+        tuesday,
+        wednesday,
+        thursday,
+        friday,
+        saturday,
+        sunday
+    ]):
+        flash("Please select at least one day of the week.")
+        return redirect(
+            url_for("edit_ride_page", ride_id=ride_id)
+        )
+
+    # -------------------------
+    # Dates
+    # -------------------------
+
+    start_date = request.form.get("start_date", "").strip()
+    end_date = request.form.get("end_date", "").strip()
+
+    # -------------------------
+    # Connect to database
+    # -------------------------
+
     conn = get_db()
+
+    # Make sure this ride belongs to the
+    # currently logged-in parent
+    ride = conn.execute(
+        """
+        SELECT *
+        FROM active_pools
+        WHERE id=? AND driver_id=?
+        """,
+        (ride_id, session["user_id"]),
+    ).fetchone()
+
+    if not ride:
+        conn.close()
+        flash("Ride not found.")
+        return redirect(url_for("dashboard"))
+
+    # -------------------------
+    # Do not allow seats below
+    # students already in ride
+    # -------------------------
+
+    if seats < ride["seats_filled"]:
+        conn.close()
+
+        flash(
+            f"You cannot reduce the seats below "
+            f"{ride['seats_filled']} students already in the ride."
+        )
+
+        return redirect(
+            url_for("edit_ride_page", ride_id=ride_id)
+        )
+
+    # -------------------------
+    # Determine route direction
+    # -------------------------
+
+    if ride_type == "Morning Drop-off":
+        start_point = neighborhood
+        destination = campus
+
+    elif ride_type in ["Afternoon Pickup", "Afternoon Dismissal"]:
+        start_point = campus
+        destination = neighborhood
+
+    else:
+        # For Sports, Club, or Other,
+        # keep the existing route unless
+        # you decide on a specific direction.
+        start_point = ride["start_point"]
+        destination = ride["destination"]
+
+    # -------------------------
+    # Update ride
+    # -------------------------
 
     conn.execute(
         """
         UPDATE active_pools
         SET
-
+            ride_type=?,
             campus=?,
             neighborhood=?,
+            start_point=?,
+            destination=?,
             departure_time=?,
-            seats_total=?
+            seats_total=?,
+
+            monday=?,
+            tuesday=?,
+            wednesday=?,
+            thursday=?,
+            friday=?,
+            saturday=?,
+            sunday=?,
+
+            start_date=?,
+            end_date=?
 
         WHERE id=?
         AND driver_id=?
-
-    """,
+        """,
         (
-            request.form["campus"],
-            request.form["neighborhood"],
-            request.form["departure_time"],
-            request.form["seats"],
+            ride_type,
+            campus,
+            neighborhood,
+            start_point,
+            destination,
+            departure_time,
+            seats,
+
+            monday,
+            tuesday,
+            wednesday,
+            thursday,
+            friday,
+            saturday,
+            sunday,
+
+            start_date,
+            end_date,
+
+            ride_id,
+            session["user_id"],
+        ),
+    )
+
+    # -------------------------
+    # Update ride status
+    # -------------------------
+
+    if ride["seats_filled"] >= seats:
+        status = "Full"
+    else:
+        status = "Open"
+
+    conn.execute(
+        """
+        UPDATE active_pools
+        SET status=?
+        WHERE id=? AND driver_id=?
+        """,
+        (
+            status,
             ride_id,
             session["user_id"],
         ),
@@ -946,36 +1165,6 @@ def edit_ride(ride_id):
     conn.close()
 
     flash("Ride updated!")
-
-    return redirect(url_for("dashboard"))
-
-
-# =========================
-# DELETE RIDE
-# =========================
-
-
-@app.route("/delete-ride/<int:ride_id>", methods=["POST"])
-def delete_ride(ride_id):
-
-    if not logged_in():
-        return redirect(url_for("login_page"))
-
-    conn = get_db()
-
-    conn.execute(
-        """
-        DELETE FROM active_pools
-        WHERE id=?
-        AND driver_id=?
-    """,
-        (ride_id, session["user_id"]),
-    )
-
-    conn.commit()
-    conn.close()
-
-    flash("Ride deleted.")
 
     return redirect(url_for("dashboard"))
 
